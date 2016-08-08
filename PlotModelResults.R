@@ -30,6 +30,23 @@ options(scipen=99) # surpress scientific notation
 options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e.g. csv) is not turned into factors
 options(digits=2)
 
+
+# CALO EMIS EXPO FEED FOOD FRTN GDPpc GDPval IMDR IMPO NETT  NQT OTHU XCPI XPRI XPRP 
+
+# Compare all
+# # Line plot - index
+# TOTAL_lineplot_i <- TOTAL2 %>%
+#   group_by(variable, sector) %>%
+#   select(-value) %>%
+#   rename(value = index) %>%
+#   do(plots = lineplot_f(., "Index")) 
+# 
+# pdf(file = "./Results/Graphs/TOTAL.pdf", width = 7, height = 7)
+# TOTAL_lineplot_i$plots
+# dev.off()
+
+
+
 # Comparison GDP, POP and YEXO
 GDP_POP_YEXO <- TOTAL2 %>%
   filter(variable %in% c("POPT", "GDPT", "YEXO"))
@@ -43,7 +60,7 @@ GDP_POP_YEXO_lineplot_i <- GDP_POP_YEXO %>%
   rename(value = index) %>%
   do(plots = lineplot_f(., "Index")) 
 
-pdf(file = "./Results/Graphs/GDP_POP_YEXO_i.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/GDP_POP_YEXO_i.pdf", width = 7, height = 7)
 GDP_POP_YEXO_lineplot_i$plots
 dev.off()
 
@@ -59,35 +76,43 @@ CONS_lineplot_i <- CONS %>%
   rename(value = index) %>%
   do(plots = lineplot_f(., "Index")) 
 
-pdf(file = "./Results/Graphs/CONS_lineplot_i.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/CONS_lineplot_i.pdf", width = 7, height = 7)
 CONS_lineplot_i$plots
 dev.off()
 
+# Comparison AREA and LAND
+LAND_AREA <- TOTAL2 %>%
+  filter(variable %in% c("AREA", "LAND")) 
 
-### Comparison AREA and LAND
 
-LAND_AREA_db <- TOTAL2 %>%
-  filter(variable %in% c("AREA", "LAND") & sector %in% c("AGR", "WHT", "RICE", "OILSEEDS", "CRP", "CRPLND", "GRSLND", "FOREST", "FOOD")) %>%
-  #filter(model != "MAGNET") %>%
-  mutate(value = ifelse(model == "MAGNET" & variable == "AREA", value*0.1, value)) # From km2 in MAGNET to 1000 ha (1 km2 = 100 ha)
+inf.nan.na.clean_f<-function(x){
+  x[do.call(cbind, lapply(x, is.nan))]<-NA
+  x[do.call(cbind, lapply(x, is.infinite))]<-NA
+  x<-x[complete.cases(x),]
+  return(x)
+}
+
+# IMAGE has zero values for LAND/AREA for a number of sector-region combinations
+LAND_AREA <- inf.nan.na.clean_f(LAND_AREA)
+xtabs(~model + sector, data = LAND_AREA)
 
 # Line plot - index
-LAND_AREA_lineplot_i <- LAND_AREA_db %>%
+LAND_AREA_lineplot_i <- LAND_AREA %>%
   group_by(variable, sector) %>%
   select(-value) %>%
   rename(value = index) %>%
   do(plots = lineplot_f(., "Index")) 
 
-pdf(file = "./Results/Graphs/LAND_AREA_line_i.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/LAND_AREA_line_i.pdf", width = 7, height = 7)
 LAND_AREA_lineplot_i$plots
 dev.off()
 
 # Line plot - value
-LAND_AREA_lineplot_ha <- LAND_AREA_db %>%
+LAND_AREA_lineplot_ha <- LAND_AREA %>%
   group_by(variable, sector) %>%
   do(plots = lineplot_f(., "1000 ha")) 
 
-pdf(file = "./Results/Graphs/LAND_AREA_line_ha.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/LAND_AREA_line_ha.pdf", width = 7, height = 7)
 LAND_AREA_lineplot_ha$plots
 dev.off()
 
@@ -116,12 +141,12 @@ dev.off()
 # dev.off()
 
 # Compare base data models (by = 2010)
-LAND_AREA_baseplot <- LAND_AREA_db %>%
+LAND_AREA_baseplot <- LAND_AREA %>%
     filter(scenario == "ECO") %>%
     group_by(variable, sector, scenario) %>%
   do(plots = baseplot_f(., 2010)) 
 
-pdf(file = "./Results/Graphs/LAND_AREA_base.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/LAND_AREA_base.pdf", width = 7, height = 7)
 LAND_AREA_baseplot$plots
 dev.off()
 
@@ -138,15 +163,38 @@ YILD_PROD_AREA_lineplot_i <- YILD_PROD_AREA %>%
   rename(value = index) %>%
   do(plots = lineplot_f(., "Index")) 
 
-pdf(file = "./Results/Graphs/YILD_PROD_AREA_line_i.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/YILD_PROD_AREA_line_i.pdf", width = 7, height = 7)
 YILD_PROD_AREA_lineplot_i$plots
 dev.off()
 
 
 # Comparison FS indicators
-
 # Calorie consumption per capita per day
 CALO <- filter(TOTAL2, variable == "CALO" & unit == "kcal/cap/d" & sector == "TOT")
+
+# compare index
+CALO_lineplot_i <- CALO %>%
+  group_by(variable, sector) %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  do(plots = lineplot_f(., "Index")) 
+
+pdf(file = "./Graphs/CALO_line_i.pdf", width = 7, height = 7)
+CALO_lineplot_i$plots
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
 # WDI data
 # WDI <- WDI(country="all", indicator=c("SP.POP.TOTL"), 
 #            start=1960, end=2015) %>%

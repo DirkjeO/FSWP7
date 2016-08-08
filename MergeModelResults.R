@@ -36,9 +36,9 @@ ma <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
 
 # ANALYSIS
 # Combine files of four models and add FAOSTAT data
-MAGNET2FS_REG <- read.csv(file.path(".\\Mappings\\FStoISO_MAGNETCountryAggregation.csv")) %>%
-  dplyr::select(Region = FS_region_name, FS_region_name_short) %>%
-  unique()
+# MAGNET2FS_REG <- read.csv(file.path(".\\Mappings\\FStoISO_MAGNETCountryAggregation.csv")) %>%
+#   dplyr::select(Region = FS_region_name, FS_region_name_short) %>%
+#   unique()
 
 
 # Read data per model
@@ -72,6 +72,7 @@ GLOBIOM <- GLOBIOM %>%
   arrange(model, scenario, FSregion, sector, variable, year) %>%
   group_by(model, scenario, FSregion, sector, variable) %>%
   filter(any(year==2010)) # to remove values with missing 2010 CHECK with AREA!!??
+xtabs(~sector + variable, data = GLOBIOM)
 
 # IMAGE
 IMAGE2FSRegion <- read.csv("./Mappings/IMAGE2FSRegion.csv")
@@ -107,7 +108,7 @@ IMAGE_CRP_AREA <- IMAGE %>%
               mutate(sector = "CRP")
 
 IMAGE <- rbind(IMAGE, IMAGE_CRP_AREA) %>% ungroup; rm(IMAGE_CRP_AREA)
-
+xtabs(~sector + variable, data = IMAGE)
 
 # Check
 unique(IMAGE$variable)
@@ -117,8 +118,8 @@ check <- filter(IMAGE, is.na(sector)) # FRTN lacks a sector
 
 
 # MAGNET
-MAGNET <- read.csv("./Results/MAGNET_FoodSecure_2016-07-22.csv") %>%
-            rename(sector = FS_sector)
+MAGNET <- read.csv("./Results/MAGNET_FoodSecure_2016-08-02.csv") %>%
+            rename(sector = FSsector)
 
 # Bind in one file
 SIMULATION <- rbind(MAGNET, IMAGE, GLOBIOM) %>% 
@@ -141,6 +142,7 @@ TOTAL2 <- TOTAL %>%
   arrange(model, scenario, variable, FSregion, sector, year)
 
 xtabs(~model + variable, data = TOTAL2)
+xtabs(~model + sector, data = TOTAL2)
 
 write.csv(TOTAL2, "Results/TOTAL.csv", row.names = F)
 
