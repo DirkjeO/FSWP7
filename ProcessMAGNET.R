@@ -1,4 +1,5 @@
-##### PROCESS MAGNET VARIABLES             ###########
+#######################################################
+##### PROCESS MAGNET VARIABLES             ############
 #######################################################
 
 # CHECK: NETT, XFPI
@@ -744,12 +745,12 @@ U[["U1"]] <- MAGNET1_2 %>%
 MAGNET_tot <- bind_rows(MAGNET1_2, MAGNET3_raw, AC, AV, U) %>%
                   mutate(model = "MAGNET",
                   year = as.numeric(year),
-                  scenario = revalue(scenario, c("ECO_qpc_ti_st" = "ECO", "FFANF_qpc_ti_st"  = "FFANF", "ONEPW_qpc_ti_st" = "ONEPW",  "TLTL_qpc_ti_st" = "TLTL")),
-                  Modelrun = "qpc_ti_st")
+                  scenario = revalue(scenario, c("ECO_qpc_ti2_st" = "ECO", "FFANF_qpc_ti2_st"  = "FFANF", "ONEPW_qpc_ti2_st" = "ONEPW",  "TLTL_qpc_ti2_st" = "TLTL")),
+                  Modelrun = "qpc_ti2_st")
 
 #FSMIPPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results"
 FSMIPPath <- "./R/ProcessedModelResults"
-write.csv(MAGNET_tot, file.path(FSMIPPath, paste("MAGNET_FoodSecure_", Sys.Date(), ".csv", sep="")), row.names = F)
-#write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti_st.csv"), row.names = F)
+#write.csv(MAGNET_tot, file.path(FSMIPPath, paste("MAGNET_FoodSecure_", Sys.Date(), ".csv", sep="")), row.names = F)
+write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti2_st.csv"), row.names = F)
 xtabs(~FSsector+variable, data = MAGNET_tot)
 
