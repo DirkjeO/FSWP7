@@ -2,8 +2,6 @@
 ##### LOAD AND CREATE VARIABLES             ###########
 #######################################################
 
-
-# TESTS
 # PACKAGES
 BasePackages <- c("lazyeval", "foreign", "stringr", "gdata", "car", "zoo", "tidyr", "RColorBrewer", "plyr", "dplyr", "ggplot2", "haven")
 lapply(BasePackages, library, character.only = TRUE)

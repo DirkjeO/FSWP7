@@ -49,10 +49,12 @@ dataSolPath <- "./4_MAGNET/Solutions"
 dataResultPath <- "./4_MAGNET/Results"
 if (!file.exists(dataResultPath)) dir.create(dataResultPath) 
 
-# Define scenarios, periods, path, project, sourcefile and create lookup table for update files
-scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
+# Define scenarios, periods and project
+scenarios<-c("FFANF_qpc_ti2_st", "ONEPW_qpc_ti2_st", "TLTL_qpc_ti2_st", "ECO_qpc_ti2_st")
 periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
 #project<-""
+
+# Create lookup table for update files
 sourcefile<-c("update")
 lookup_upd <- expand.grid(scenarios, periods, sourcefile, stringsAsFactors = FALSE)
 
@@ -65,10 +67,7 @@ names(lookup_upd) <- c("scenario", "period", "sourcefile", "start", "year")
 lookup_upd$harSourceFiles <- paste(with(lookup_upd, paste(scenario, period, sourcefile, sep="_")), ".har", sep="")
 lookup_upd$gdxResultFiles <- paste(with(lookup_upd, paste(scenario, period, sourcefile, sep="_")), ".gdx", sep="")
 
-# Define scenarios, periods, path, project, sourcefile and create lookup table for update_view files
-scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
-periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
-#project<-""
+# Create lookup table for update_view files
 sourcefile<-c("update_view")
 lookup_upd_view <- expand.grid(scenarios, periods, sourcefile, stringsAsFactors = FALSE)
 
@@ -81,10 +80,7 @@ names(lookup_upd_view) <- c("scenario", "period", "sourcefile", "start", "year")
 lookup_upd_view$harSourceFiles <- paste(with(lookup_upd_view, paste(scenario, period, sourcefile, sep="_")), ".har", sep="")
 lookup_upd_view$gdxResultFiles <- paste(with(lookup_upd_view, paste(scenario, period, sourcefile, sep="_")), ".gdx", sep="")
 
-# Define scenarios, periods, path, project, sourcefile and create lookup table for solution files files
-scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
-periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
-#project<-""
+# Create lookup table for solution files files
 sourcefile<-c("Solution")
 lookup_sol <- expand.grid(scenarios, periods, sourcefile, stringsAsFactors = FALSE)
 
@@ -102,9 +98,7 @@ BaseDataFiles <- data.frame(harSourceFiles = c("BaseData_b.har", "BaseData_b_vie
                             gdxResultFiles = c("BaseData_b.gdx", "BaseData_b_view.gdx", "fsbasecalories_2007-2010_update_view.gdx"))
 
 
-# Define scenarios, periods, path, project, sourcefile and create lookup table for slc files
-scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
-periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
+# Create lookup table for slc files
 sourcefile<-c("solution")
 destinationfile <- c("solution_slc")
 lookup_slc <- expand.grid(scenarios, periods, sourcefile, stringsAsFactors = FALSE)
