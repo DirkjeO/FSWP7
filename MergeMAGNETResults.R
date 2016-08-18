@@ -40,7 +40,8 @@ ma <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
 MAGNETruns <- list()
 MAGNETruns[["M_qpc_ti_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti_st.csv"))
 MAGNETruns[["M_qpc_t_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_t_st.csv"))
-MAGNETruns[["M_qpc_ti2_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti2_st.csv"))
+#MAGNETruns[["M_qpc_ti2_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti2_st.csv"))
+MAGNETruns[["M_qpc_ti3_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti3_st.csv"))
 MAGNETruns <- bind_rows(MAGNETruns) %>%
   na.omit
 xtabs(~Modelrun + variable, data = MAGNETruns)
@@ -79,8 +80,6 @@ lineplot_f <- function(df){
   
   p
 }
-
-check <- filter(MAGNET, variable == "CALO")
 
 plot_i <- MAGNETruns %>%
   group_by(variable, FSsector, unit) %>%
