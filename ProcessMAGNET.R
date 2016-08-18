@@ -32,7 +32,7 @@ wsubtot_f <-function(df, grp, tvar, weight, map){
 ### CREATE MAPPINGS
 # Load concordance table MAGNET2FS
 MAGNET2FS_REG <- read.csv(file.path(dataPath, "Concordance\\MAGNET2FS_REG.csv")) %>%
-  dplyr::select(REG = FS_MAGNET, FS_region2, World) %>%
+  rename(REG = FS_MAGNET) %>%
   unique()
 
 MAGNET2FS_SEC <- read.csv(file.path(dataPath, "Concordance\\FStoMAGNETSectorAggregation.csv"), na.strings = "") %>%
@@ -48,6 +48,18 @@ map_fsreg <- MAGNET2FS_REG %>%
 
 map_wld <- MAGNET2FS_REG %>%
   select(REG, FSregion = World) %>%
+  na.omit %>%
+  unique
+
+map_af <- MAGNET2FS_REG %>%
+  select(REG, FSregion = FS_region3) %>%
+  mutate(FSregion = zap_empty(FSregion)) %>%
+  na.omit %>%
+  unique
+
+map_hh <- MAGNET2FS_REG %>%
+  select(REG, FSregion = FS_hhregion) %>%
+  mutate(FSregion = zap_empty(FSregion)) %>%
   na.omit %>%
   unique
 
@@ -320,6 +332,7 @@ MAGNET1 <- bind_rows(
   subtot_f(MAGNET1, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_agr),
   subtot_f(MAGNET1, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_crp),
   subtot_f(MAGNET1, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_primfood),
+  subtot_f(MAGNET1, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_anml),
   subtot_f(MAGNET1, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_food),
   subtot_f(MAGNET1, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_tot)
 )
@@ -327,12 +340,16 @@ MAGNET1 <- bind_rows(
 # Regional mappings
 MAGNET1 <-bind_rows(
   subtot_f(MAGNET1, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_fsreg),
-  subtot_f(MAGNET1, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld)
+  subtot_f(MAGNET1, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld),
+  subtot_f(MAGNET1, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_af),
+  subtot_f(MAGNET1, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_hh)
 )
 
 MAGNET2 <-bind_rows(
   subtot_f(MAGNET2, c("scenario", "year", "FSregion", "variable", "unit"), "value", map_fsreg),
-  subtot_f(MAGNET2, c("scenario", "year", "FSregion", "variable", "unit"), "value", map_wld)
+  subtot_f(MAGNET2, c("scenario", "year", "FSregion", "variable", "unit"), "value", map_wld),
+  subtot_f(MAGNET2, c("scenario", "year", "FSregion", "variable", "unit"), "value", map_af),
+  subtot_f(MAGNET2, c("scenario", "year", "FSregion", "variable", "unit"), "value", map_hh)
 ) %>%
   mutate(FSsector = "TOT") # Add TOT for all national level indicators
 
@@ -410,14 +427,21 @@ YEXO_raw <- bind_rows(
   subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_sec),
   subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_agr),
   subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_crp),
-  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_food)
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_food),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_sec_M),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_tot_M),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_primfood),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_anml),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_tot)
 )
 
 # Regional mappings
 YEXO_raw <-bind_rows(
   subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_fsreg),
-  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld)
-)
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_af),
+  subtot_f(YEXO_raw, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_hh)
+  )
 
 MAGNET3_raw[["YEXO"]]  <- YEXO_raw %>% 
                       group_by(scenario, year, FSsector, FSregion, unit) %>%
@@ -489,18 +513,16 @@ AV[["AV2"]] <- MAGNET1_2 %>%
 # AV3
 # Average supply of protein derived from animal sources
 AV[["AV3"]] <- MAGNET1_2 %>% 
-  filter(variable %in% c("POPT", "NQSECT") & unit %in% c("PROT", "mil pers") &  FSsector %in% c("TOT","LSP")) %>%
+  filter(variable %in% c("POPT") | (variable %in% c("NQSECT") & unit %in% c("PROT") & FSsector %in% c("LSP"))) %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "LSP",
          unit = "grams/cap/day",
          variable = "PROT")
 
-
 # AV4 Primary food production: PROD
-AV[["AV4"]] <- 
-  AV4 <- MAGNET1_2 %>% 
-  filter(variable %in% c("PROD", "POPT") & unit %in% c("mil pers", "mil 2007 USD") & FSsector %in% c("PRIMFOOD", "TOT")) %>%
+AV[["AV4"]] <- MAGNET1_2 %>% 
+  filter((variable %in% c("PROD") & unit %in% c("mil 2007 USD") & FSsector %in% c("PRIMFOOD")) | variable %in% c("POPT")) %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "PROD"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "PRIMFOOD",
@@ -745,12 +767,12 @@ U[["U1"]] <- MAGNET1_2 %>%
 MAGNET_tot <- bind_rows(MAGNET1_2, MAGNET3_raw, AC, AV, U) %>%
                   mutate(model = "MAGNET",
                   year = as.numeric(year),
-                  scenario = revalue(scenario, c("ECO_qpc_ti2_st" = "ECO", "FFANF_qpc_ti2_st"  = "FFANF", "ONEPW_qpc_ti2_st" = "ONEPW",  "TLTL_qpc_ti2_st" = "TLTL")),
-                  Modelrun = "qpc_ti2_st")
+                  scenario = revalue(scenario, c("ECO_qpc_ti3_st" = "ECO", "FFANF_qpc_ti3_st"  = "FFANF", "ONEPW_qpc_ti3_st" = "ONEPW",  "TLTL_qpc_ti3_st" = "TLTL")),
+                  Modelrun = "qpc_ti3_st")
 
 #FSMIPPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results"
 FSMIPPath <- "./R/ProcessedModelResults"
 #write.csv(MAGNET_tot, file.path(FSMIPPath, paste("MAGNET_FoodSecure_", Sys.Date(), ".csv", sep="")), row.names = F)
-write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti2_st.csv"), row.names = F)
+write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti3_st.csv"), row.names = F)
 xtabs(~FSsector+variable, data = MAGNET_tot)
 
