@@ -2,7 +2,7 @@
 ##### PROCESS MAGNET VARIABLES             ############
 #######################################################
 
-# CHECK: NETT, XFPI
+# CHECK: NETT, XFPI YILD, 
 
 ### FUNCTIONS
 # Simple aggregation over sectors using mapping

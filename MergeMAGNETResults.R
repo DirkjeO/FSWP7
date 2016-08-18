@@ -81,12 +81,39 @@ lineplot_f <- function(df){
   p
 }
 
-plot_i <- MAGNETruns %>%
+
+# Main regions
+mainRegions <- filter(MAGNETruns, FSregion %in% c("EASIA", "EU", "LAC", "MENA", "ROW", "SASIA", "SSA", "WLD"))
+
+plot_i <- mainRegions %>%
+  group_by(variable, FSsector, unit) %>%
+  do(plots = lineplot_f(.)) 
+
+pdf(file = file.path(graphPath, "mrPlots.pdf"), width = 7, height = 7)
+plot_i$plots
+dev.off()
+rm(plot_i)
+
+# Africa regions
+afRegions <- filter(MAGNETruns, FSregion %in% c("EAF", "NAF", "SAF", "WAF"))
+
+plot_i <- afRegions %>%
+  group_by(variable, FSsector, unit) %>%
+  do(plots = lineplot_f(.)) 
+
+pdf(file = file.path(graphPath, "afPlots.pdf"), width = 7, height = 7)
+plot_i$plots
+dev.off()
+rm(plot_i)
+
+# Household regions
+hhRegions <- filter(MAGNETruns, FSregion %in% c("CHN", "GHA", "IDN", "IND", "KEN", "UGA")) 
+
+plot_i <- hhRegions %>%
   group_by(variable, FSsector, unit) %>%
   do(plots = lineplot_f(.)) 
 
 pdf(file = file.path(graphPath, "AllPlots.pdf"), width = 7, height = 7)
 plot_i$plots
 dev.off()
-
-
+rm(plot_i)
