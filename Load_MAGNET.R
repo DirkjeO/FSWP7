@@ -31,7 +31,7 @@ options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e
 options(digits=4)
 
 # Define scenarios, periods, path, project, sourcefile and 
-scenarios<-c("FFANF_qpc_ti2_st", "ONEPW_qpc_ti2_st", "TLTL_qpc_ti2_st", "ECO_qpc_ti2_st")
+scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
 periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
 #project<-""
 
