@@ -16,14 +16,14 @@ igdx(GAMSPath)
 
 # Set working folder
 #wdPath <- "D:\\Kuiper\\HHS_BIOF"
-wdPath <- "D:\\Shutes\\FOODSECURE"
+wdPath <- "D:\\R\\FSWP7"
 #wdPath <- "T:\\Shutes\\FOODSECURE"
 setwd(wdPath)  
-dataPath <- ".\\R\\"
-dataResultPath <- "./4_MAGNET/Results"
+dataPath <- "D:\\Shutes\\FOODSECURE/R"
+dataResultPath <- "D:\\Shutes\\FOODSECURE/4_MAGNET/Results"
 
 # Source functions
-source(".\\R\\HARtGDX_FSMIP\\Load_Magnet_f.r")
+source(".\\Code\\Load_Magnet_f.r")
 
 # R SETTINGS
 options(scipen=999) # surpress scientific notation
@@ -31,7 +31,9 @@ options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e
 options(digits=4)
 
 # Define scenarios, periods, path, project, sourcefile and 
-scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
+#scenarios<-c("FFANF_qpc_t_st", "ONEPW_qpc_t_st", "TLTL_qpc_t_st", "ECO_qpc_t_st")
+scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
+#scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
 periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
 #project<-""
 

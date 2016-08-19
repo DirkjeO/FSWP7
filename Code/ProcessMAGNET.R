@@ -2,7 +2,8 @@
 ##### PROCESS MAGNET VARIABLES             ############
 #######################################################
 
-# CHECK: NETT, XFPI YILD, 
+# GDPpc across models
+
 
 ### FUNCTIONS
 # Simple aggregation over sectors using mapping
@@ -279,7 +280,7 @@ MAGNET1_raw[["VIMPval"]] <- current.f("priimpconsval", "BaseData_b.gdx", "VIPM",
 
 
 ### FOOD, FEED and OTHU
-source("R\\HARtGDX_FSMIP\\FOODFEED.r")
+source("Code\\FOODFEED.r")
 MAGNET1_raw[["FEED"]] <- FEED; rm(FEED)
 MAGNET1_raw[["FOOD"]] <- FOOD; rm(FOOD)
 MAGNET1_raw[["OTHU"]] <- OTHU; rm(OTHU)
@@ -370,7 +371,8 @@ MAGNET3_raw <- list()
 ### YILD: Endogenous yield
 # Need to replace LSP woth LPS defined over RMEAT and DAIRY only.
 PRODlsp <- constant.f("PROD", "VALOUTPUT", c("TRAD_COMM","REG", "GDPSOURCE"), c("TRAD_COMM", "REG"), "qo", c("NSAV_COMM", "REG")) %>%
-            mutate(unit = "mil 2007 USD") %>% 
+            mutate(unit = "mil 2007 USD", 
+                   REG = toupper(REG)) %>% 
             filter(TRAD_COMM %in% c("ctl", "rmk"))
 
 PRODlsp <- subtot_f(PRODlsp, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_lsp)
@@ -378,11 +380,12 @@ PRODlsp <- subtot_f(PRODlsp, c("scenario", "year", "FSsector", "REG", "variable"
 # Regional mappings
 PRODlsp <-bind_rows(
   subtot_f(PRODlsp, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_fsreg),
-  subtot_f(PRODlsp, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld)
+  subtot_f(PRODlsp, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld),
+  subtot_f(PRODlsp, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_af),
+  subtot_f(PRODlsp, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_hh)
 )
 
-MAGNET3_raw[["YILD"]] <-
-  YILD <- bind_rows(
+MAGNET3_raw[["YILD"]] <- bind_rows(
            filter(MAGNET1_2, variable %in% c("AREA") & 
                   FSsector %in% c("AGR", "CER", "CRP", "DAIRY", "FOOD", "LSP", "MEAT", "OCEREALS",
                                 "OCROPS", "OILSEEDS", "PFB", "RICE", "RMEAT", "SUGAR",  "VFN", "WHT")),
@@ -472,15 +475,14 @@ MAGNET3_raw[["XPRX"]] <- MAGNET1_2 %>%
 rm(GDPdef)
 
 ### NETT: Net trade
-MAGNET3_raw[["NETT"]]  <- MAGNET1_2 %>%
-  filter(variable %in% c("EXPO", "IMPO")) %>%
+MAGNET3_raw[["NETT"]] <- MAGNET1_2 %>%
+  filter(variable %in% c("EXPO", "IMPO") & unit == "mil 2007 USD") %>%
   spread(variable, value) %>%
   mutate(value = EXPO - IMPO,
          variable = "NETT",
          unit = "mil 2007 con USD") %>%
   select(-EXPO, -IMPO)
   
-
 
 ####################
 ### AVAILABILITY ###
@@ -623,7 +625,7 @@ XFPI_p <- MAGNET1_2 %>%
          unit = "Paasche index") %>%
   select(-GDPT, -GDPval, -PCONS, -PCONSval)
 rm(GDPdef)    
- 
+
 # Laspeyers price index
 # NOT CORRECT CHANGE
 # XPRI_l <- MAGNET1_2 %>%
@@ -767,12 +769,16 @@ U[["U1"]] <- MAGNET1_2 %>%
 MAGNET_tot <- bind_rows(MAGNET1_2, MAGNET3_raw, AC, AV, U) %>%
                   mutate(model = "MAGNET",
                   year = as.numeric(year),
-                  scenario = revalue(scenario, c("ECO_qpc_ti3_st" = "ECO", "FFANF_qpc_ti3_st"  = "FFANF", "ONEPW_qpc_ti3_st" = "ONEPW",  "TLTL_qpc_ti3_st" = "TLTL")),
+                  #scenario = revalue(scenario, c("ECO_qpc_t_st" = "ECO", "FFANF_qpc_t_st"  = "FFANF", "ONEPW_qpc_t_st" = "ONEPW",  "TLTL_qpc_t_st" = "TLTL")),
+                  scenario = revalue(scenario, c("ECO_qpc_ti_st" = "ECO", "FFANF_qpc_ti_st"  = "FFANF", "ONEPW_qpc_ti_st" = "ONEPW",  "TLTL_qpc_ti_st" = "TLTL")),
+                  #scenario = revalue(scenario, c("ECO_qpc_ti3_st" = "ECO", "FFANF_qpc_ti3_st"  = "FFANF", "ONEPW_qpc_ti3_st" = "ONEPW",  "TLTL_qpc_ti3_st" = "TLTL")),
                   Modelrun = "qpc_ti3_st")
 
 #FSMIPPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results"
-FSMIPPath <- "./R/ProcessedModelResults"
+FSMIPPath <- "Cache"
 #write.csv(MAGNET_tot, file.path(FSMIPPath, paste("MAGNET_FoodSecure_", Sys.Date(), ".csv", sep="")), row.names = F)
-write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti3_st.csv"), row.names = F)
+#write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_t_st.csv"), row.names = F)
+write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti_st.csv"), row.names = F)
+#write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti3_st.csv"), row.names = F)
 xtabs(~FSsector+variable, data = MAGNET_tot)
 
