@@ -14,7 +14,7 @@ AdditionalPackages <-  c("WDI", "countrycode")
 lapply(AdditionalPackages, library, character.only = TRUE)
 
 # SET PATHS
-wdPath<-"D:\\R\\CGETOOLS"
+wdPath<-"D:\\R\\FSWP7"
 #wdPath<-"D:\\2 Content\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 dataPath <- "D:\\Shutes\\FOODSECURE\\R\\ProcessedModelResults"
@@ -38,10 +38,9 @@ ma <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
 
 # Read MAGNET data per model and merge
 MAGNETruns <- list()
-MAGNETruns[["M_qpc_ti_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti_st.csv"))
-MAGNETruns[["M_qpc_t_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_t_st.csv"))
-#MAGNETruns[["M_qpc_ti2_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti2_st.csv"))
-MAGNETruns[["M_qpc_ti3_st"]] <- read_csv(file.path(dataPath, "MAGNET_qpc_ti3_st.csv"))
+MAGNETruns[["M_qpc_ti_st"]] <- read_csv("Cache/MAGNET_qpc_ti_st.csv")
+MAGNETruns[["M_qpc_t_st"]] <- read_csv("Cache/MAGNET_qpc_t_st.csv")
+MAGNETruns[["M_qpc_ti3_st"]] <- read_csv("Cache/MAGNET_qpc_ti3_st.csv")
 MAGNETruns <- bind_rows(MAGNETruns) %>%
   na.omit
 xtabs(~Modelrun + variable, data = MAGNETruns)
@@ -113,7 +112,7 @@ plot_i <- hhRegions %>%
   group_by(variable, FSsector, unit) %>%
   do(plots = lineplot_f(.)) 
 
-pdf(file = file.path(graphPath, "AllPlots.pdf"), width = 7, height = 7)
+pdf(file = file.path(graphPath, "hhPlots.pdf"), width = 7, height = 7)
 plot_i$plots
 dev.off()
 rm(plot_i)
