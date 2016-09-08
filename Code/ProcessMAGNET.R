@@ -766,7 +766,7 @@ U[["U1"]] <- MAGNET1_2 %>%
 ### MERGE ALL AND WRITE DATA FILE ###
 #####################################
 
-MAGNET_tot <- bind_rows(MAGNET1_2, MAGNET3_raw, AC, AV, U) %>%
+MAGNET_tot <- bind_rows(MAGNET1_2, MAGNET3_raw, AC, AV, U, ST) %>%
                   mutate(model = "MAGNET",
                   year = as.numeric(year),
                   #scenario = revalue(scenario, c("ECO_qpc_t_st" = "ECO", "FFANF_qpc_t_st"  = "FFANF", "ONEPW_qpc_t_st" = "ONEPW",  "TLTL_qpc_t_st" = "TLTL")),

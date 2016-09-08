@@ -10,7 +10,7 @@
 #             - Adding user defined region concordance to make user defined aggregations
 
 # PACKAGES
-BasePackages <- c("foreign", "stringr", "gdata", "car", "zoo", "tidyr", "RColorBrewer", "plyr", "dplyr", "ggplot2", "haven")
+BasePackages <- c("foreign", "stringr", "car", "zoo", "tidyr", "RColorBrewer", "plyr", "dplyr", "ggplot2", "haven")
 lapply(BasePackages, library, character.only = TRUE)
 AdditionalPackages <- c("gdxrrw")
 lapply(AdditionalPackages, library, character.only = TRUE)
