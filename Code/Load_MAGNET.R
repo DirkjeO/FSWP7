@@ -2,40 +2,7 @@
 ##### LOAD AND CREATE VARIABLES             ###########
 #######################################################
 
-# PACKAGES
-BasePackages <- c("lazyeval", "foreign", "stringr", "gdata", "car", "zoo", "tidyr", "RColorBrewer", "plyr", "dplyr", "ggplot2", "haven")
-lapply(BasePackages, library, character.only = TRUE)
-AdditionalPackages <- c("gdxrrw", "micEcon")
-lapply(AdditionalPackages, library, character.only = TRUE)
-
-# load required GAMS libraries (folder user specific)
-GAMSPath <- "C:\\24.4"
-#GAMSPath <- "C:\\Program Files\\GAMS\\win64\\24.6"
-igdx(GAMSPath)
-# Make sure GDX2HAR.exe and gdxiomh.dll are located in one folder.
-
-# Set working folder
-#wdPath <- "D:\\Kuiper\\HHS_BIOF"
-wdPath <- "D:\\R\\FSWP7"
-#wdPath <- "T:\\Shutes\\FOODSECURE"
-setwd(wdPath)  
-dataPath <- "D:\\Shutes\\FOODSECURE/R"
-dataResultPath <- "D:\\Shutes\\FOODSECURE/4_MAGNET/Results"
-
-# Source functions
 source(".\\Code\\Load_Magnet_f.r")
-
-# R SETTINGS
-options(scipen=999) # surpress scientific notation
-options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e.g. csv) is not turned into factors
-options(digits=4)
-
-# Define scenarios, periods, path, project, sourcefile and 
-#scenarios<-c("FFANF_qpc_t_st", "ONEPW_qpc_t_st", "TLTL_qpc_t_st", "ECO_qpc_t_st")
-#scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
-scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
-periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
-#project<-""
 
 # create lookup table for update files
 sourcefile<-c("update")

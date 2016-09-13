@@ -5,6 +5,40 @@
 # GDPpc across models
 
 
+### PACKAGES
+BasePackages <- c("lazyeval", "foreign", "stringr", "car", "zoo", "tidyr", "RColorBrewer", "plyr", "dplyr", "ggplot2", "haven")
+lapply(BasePackages, library, character.only = TRUE)
+AdditionalPackages <- c("gdxrrw", "micEcon")
+lapply(AdditionalPackages, library, character.only = TRUE)
+
+### load required GAMS libraries (folder user specific)
+GAMSPath <- "C:\\24.4"
+#GAMSPath <- "C:\\Program Files\\GAMS\\win64\\24.6"
+igdx(GAMSPath)
+# Make sure GDX2HAR.exe and gdxiomh.dll are located in one folder.
+
+### Set working folder
+wdPath <- "D:\\R\\FSWP7"
+setwd(wdPath)  
+
+dataPath <- "D:\\Shutes\\FOODSECURE/R"
+dataResultPath <- "D:\\Shutes\\FOODSECURE/4_MAGNET/Results"
+
+### R SETTINGS
+options(scipen=999) # surpress scientific notation
+options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e.g. csv) is not turned into factors
+options(digits=4)
+
+### Define scenarios, periods, path, project, sourcefile and 
+#scenarios<-c("FFANF_qpc_t_st", "ONEPW_qpc_t_st", "TLTL_qpc_t_st", "ECO_qpc_t_st")
+#scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
+scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
+periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
+#project<-""
+
+### Source script that creates file names
+source(".\\Code\\Load_Magnet.r")
+
 ### FUNCTIONS
 # Simple aggregation over sectors using mapping
 subtot_f <-function(df, grp, tvar, map){
@@ -32,16 +66,17 @@ wsubtot_f <-function(df, grp, tvar, weight, map){
 
 ### CREATE MAPPINGS
 # Load concordance table MAGNET2FS
-MAGNET2FS_REG <- read.csv(file.path(dataPath, "Concordance\\MAGNET2FS_REG.csv")) %>%
+MAGNET2FS_REG <- read.csv("Concordance\\MAGNET2FS_REG.csv") %>%
   rename(REG = FS_MAGNET) %>%
   unique()
 
-MAGNET2FS_SEC <- read.csv(file.path(dataPath, "Concordance\\FStoMAGNETSectorAggregation.csv"), na.strings = "") %>%
+MAGNET2FS_SEC <- read.csv("Concordance\\MAGNET2FS_SEC.csv", na.strings = "") %>%
   dplyr::rename(sector = FS_sector_code, TRAD_COMM = FS_MAGNET_sector_name) %>%
   dplyr::filter(!is.na(sector)) %>% # remove unmapped feed sector in MAGNET
   unique()
 
 # Create regional and sectoral mappings
+# Regional mappings
 map_fsreg <- MAGNET2FS_REG %>%
   select(REG, FSregion = FS_region2) %>%
   na.omit %>%
@@ -64,6 +99,7 @@ map_hh <- MAGNET2FS_REG %>%
   na.omit %>%
   unique
 
+# Sectoral mappings
 map_cer <- MAGNET2FS_SEC %>%
   transmute(TRAD_COMM, FSsector = cer) %>%
   na.omit %>%
@@ -120,20 +156,6 @@ map_tot_M <- MAGNET2FS_SEC %>%
   unique
 
  
-# ### TEST df
-# prodcon <- constant.f("prodcon", "VALOUTPUT", c("TRAD_COMM","REG", "GDPSOURCE"), c("TRAD_COMM", "REG"), "qo", c("NSAV_COMM", "REG"))
-# test <- filter(prodcon, TRAD_COMM %in% c("pdr", "wht", "gro", "hort", "osd", "c_b", "oagr", "crops")) %>% 
-#   mutate(REG = toupper(REG))
-# test <- AREA_raw
-# df <- test
-# grp <- c("scenario", "year", "FSsector", "FSregion", "variable", "unit")
-# tvar <- "value"
-# mapsec <- map_sec
-# mapreg <- map_wld
-# rm(mapsec, mapreg, df, grp, tvar)
-
-
-
 ####################################################
 #### Variables with sector and region dimension ####
 ####################################################
@@ -480,7 +502,7 @@ MAGNET3_raw[["NETT"]] <- MAGNET1_2 %>%
   spread(variable, value) %>%
   mutate(value = EXPO - IMPO,
          variable = "NETT",
-         unit = "mil 2007 con USD") %>%
+         unit = "mil 2007 USD") %>%
   select(-EXPO, -IMPO)
   
 
@@ -569,13 +591,15 @@ AC <- list()
 # Average share of food expenditures in total household expenditures
 VPA <- bind_rows(
           current.f("VDPA", "BaseData_b.gdx", "VDPA", lookup_upd, "VDPA", c("TRAD_COMM", "REG"), c("TRAD_COMM","REG")) %>%
-            mutate(unit = "mil. USD"),
+            mutate(unit = "mil. USD",
+                   REG = toupper(REG)),
           current.f("VIPA", "BaseData_b.gdx", "VIPA", lookup_upd, "VIPA", c("TRAD_COMM", "REG"), c("TRAD_COMM","REG")) %>%
-            mutate(unit = "mil. USD")) %>%
+            mutate(unit = "mil. USD",
+                   REG = toupper(REG))) %>%
        group_by(scenario, REG, year, TRAD_COMM) %>%
        summarize(value = sum(value)) %>%
        mutate(variable = "VPA",
-              unit = "mil. USD")
+              unit = "mil USD")
 
 VPA <- bind_rows(
       subtot_f(VPA, c("scenario", "year", "FSsector", "REG", "variable", "unit"), "value", map_food),
@@ -584,14 +608,16 @@ VPA <- bind_rows(
 
 VPA <- bind_rows(
   subtot_f(VPA, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_fsreg),
-  subtot_f(VPA, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld)
+  subtot_f(VPA, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_wld),
+  subtot_f(VPA, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_hh),
+  subtot_f(VPA, c("scenario", "year", "FSsector", "FSregion", "variable", "unit"), "value", map_af)
 )
 
-AC[["AC1"]] <- VPA %>%
+AC[["SHRFC"]] <- VPA %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = value[FSsector == "FOOD"]/value[FSsector == "TOT"]*100) %>%
   mutate(FSsector = "TOT", 
-          variable = "SHRFc",
+          variable = "SHRFC",
           unit = "%")
 rm(VPA)
 
@@ -738,7 +764,7 @@ ST[["SHRM"]] <- MAGNET1_2 %>%
   summarize(value = (value[variable == "IMPO"]/ value[variable == "EXPO"])*100) %>%
   mutate(variable = "SHRM",
        unit = "%",
-       sector = "FOOD")
+       FSsector = "FOOD")
 
 
 ### UTILIZATION
