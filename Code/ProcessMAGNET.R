@@ -120,6 +120,11 @@ map_lsp <- MAGNET2FS_SEC %>%
   na.omit %>%
   unique
 
+map_lspfsh <- MAGNET2FS_SEC %>%
+  transmute(TRAD_COMM, FSsector = lspfsh) %>%
+  na.omit %>%
+  unique
+
 map_agr <- MAGNET2FS_SEC %>%
   transmute(TRAD_COMM, FSsector = agr) %>%
   na.omit %>%
@@ -524,7 +529,7 @@ AV[["AV1"]] <- MAGNET1_2 %>%
 
 
 # # AV2
-# # Net Share of energy supply (calories) derived from dairy and fruit and vegetables
+# # Net Share of energy supply (calories) derived from cereals
 # # Nutrients
 AV[["AV2"]] <- MAGNET1_2 %>%
   filter(variable %in% c("NQSECT") & unit %in% c("CAL") &  FSsector %in% c("TOT","CER")) %>%
@@ -536,13 +541,22 @@ AV[["AV2"]] <- MAGNET1_2 %>%
 
 # AV3
 # Average supply of protein derived from animal sources
-AV[["AV3"]] <- MAGNET1_2 %>% 
+AV[["AV3a"]] <- MAGNET1_2 %>% 
   filter(variable %in% c("POPT") | (variable %in% c("NQSECT") & unit %in% c("PROT") & FSsector %in% c("LSP"))) %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "LSP",
          unit = "grams/cap/day",
          variable = "PROT")
+
+AV[["AV3b"]] <- MAGNET1_2 %>% 
+  filter(variable %in% c("POPT") | (variable %in% c("NQSECT") & unit %in% c("PROT") & FSsector %in% c("LSPFSH"))) %>%
+  group_by(scenario, FSregion, year) %>%
+  summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
+  mutate(FSsector = "LSPFSH",
+         unit = "grams/cap/day",
+         variable = "PROT")
+
 
 # AV4 Primary food production: PROD
 AV[["AV4"]] <- MAGNET1_2 %>% 
@@ -616,7 +630,7 @@ VPA <- bind_rows(
 AC[["SHRFC"]] <- VPA %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = value[FSsector == "FOOD"]/value[FSsector == "TOT"]*100) %>%
-  mutate(FSsector = "TOT", 
+  mutate(FSsector = "FOOD", 
           variable = "SHRFC",
           unit = "%")
 rm(VPA)
@@ -690,7 +704,7 @@ AC[["XPRM"]] <-  MAGNET1_2 %>%
   left_join(., GDPdef) %>%
   mutate(value = VIPMval/VIPM/GDPval*GDPT,
          value = ifelse(is.nan(value), NA, value), # for some combinations data is zero resulting in NAN
-         variable = "XFPI",
+         variable = "XPRM",
          unit = "Paasche index") %>%
   select(-GDPT, -GDPval, -VIPM, -VIPMval)
 rm(GDPdef)  
@@ -698,47 +712,6 @@ rm(GDPdef)
 # AC7 unskilled agricultural wage vs cereal prices
 #[TO ADD]
 
-
-### HOUSEHOLD LEVEL VARIABLES
-MAGNET_HH <- list()
-
-# AC6 HHCONS: Total private domestic consumption volume
-# Private consumption of domestic products volume at hh level
-VDPMH <- constant2.f("VDPMH", "BaseData_b.gdx", "VDPMH", c("TRAD_COMM", "HHS", "HH_REG"), c("TRAD_COMM", "HHS", "HH_REG"), "qpdh", c("TRAD_COMM", "HHS", "HH_REG"))
-# Private consumption of imported products volume at hh level
-VIPMH <- constant2.f("VIPMH", "BaseData_b.gdx", "VIPMH", c("TRAD_COMM", "HHS", "HH_REG"), c("TRAD_COMM", "HHS", "HH_REG"), "qpmh", c("TRAD_COMM", "HHS", "HH_REG"))
-
-CONSHH <- rbind(VDPMH, VIPMH) %>%
-  group_by(HH_REG, HHS, TRAD_COMM, scenario, year) %>%
-  summarize(value = sum(value)) %>%
-  rename(REG = HH_REG) %>%
-  ungroup() %>%
-  mutate(variable = "CONS",
-         unit = "mil 2007 USD",
-         REG = toupper(REG))
-
-CONSHH <- bind_rows(
-  subtot_f(CONSHH, c("scenario", "year", "FSsector", "REG", "variable", "unit", "HHS"), "value", map_cer),
-  subtot_f(CONSHH, c("scenario", "year", "FSsector", "REG", "variable", "unit", "HHS"), "value", map_sec),
-  subtot_f(CONSHH, c("scenario", "year", "FSsector", "REG", "variable", "unit", "HHS"), "value", map_agr),
-  subtot_f(CONSHH, c("scenario", "year", "FSsector", "REG", "variable", "unit", "HHS"), "value", map_crp),
-  subtot_f(CONSHH, c("scenario", "year", "FSsector", "REG", "variable", "unit", "HHS"), "value", map_food)
-)
-
-# POPT per HH group
-POPH <- constant2.f("POPH", "BaseData_b.gdx", "POPH", c("HHS", "HH_REG"), c("HHS", "HH_REG"), "poph", c("HHS", "HH_REG")) %>%
-  rename(REG = HH_REG,
-         POPT = value) %>%
-  mutate(REG = toupper(REG)) %>%
-  select(-variable)
-
-MAGNET_HH[["CONS"]] <- left_join(CONSHH, POPH) %>%
-  mutate(value = value/POPT,
-         value = ifelse(is.infinite(value), NA, value),
-         unit = "mil 2007 USD/cap",
-         variable = "CONS") %>%
-  select(-POPT)
-rm(CONSHH, POPH, VDPMH, VIPMH)
 
 
 ### STABILITY
@@ -771,16 +744,11 @@ ST[["SHRM"]] <- MAGNET1_2 %>%
 U <- list()
 
 # U1
-#Energy density indicator
-# TBA
-
-# U2
-#CHECK DOES NOT WORK!!
 # Net Share of energy supply (calories) derived from vegetables and fruits
 U[["U1"]] <- MAGNET1_2 %>%
-  filter(variable %in% c("NQSECT") & unit %in% c("CAL") &  FSsector %in% c("TOT","VFN")) %>%
+  filter((variable %in% c("NQSECT") & unit %in% c("CAL")) &  (FSsector %in% c("TOT","VFN"))) %>%
   group_by(scenario, FSregion, year) %>%
-  summarize(value = (value[variable == "NQSECT"]/value[variable == "NQT"]*100)) %>%
+  summarize(value = (value[FSsector == "VFN"]/value[FSsector == "TOT"]*100)) %>%
   mutate(FSsector = "VFN",
          unit = "%",
          variable = "CALO")
