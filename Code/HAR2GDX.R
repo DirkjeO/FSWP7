@@ -50,7 +50,8 @@ dataResultPath <- "./4_MAGNET/Results"
 if (!file.exists(dataResultPath)) dir.create(dataResultPath) 
 
 # Define scenarios, periods and project
-scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
+#scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
+scenarios<-c("FFANF_qpc_ti4_st", "ONEPW_qpc_ti4_st", "TLTL_qpc_ti4_st", "ECO_qpc_ti4_st")
 periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
 #project<-""
 

@@ -32,7 +32,8 @@ options(digits=4)
 ### Define scenarios, periods, path, project, sourcefile and 
 #scenarios<-c("FFANF_qpc_t_st", "ONEPW_qpc_t_st", "TLTL_qpc_t_st", "ECO_qpc_t_st")
 #scenarios<-c("FFANF_qpc_ti_st", "ONEPW_qpc_ti_st", "TLTL_qpc_ti_st", "ECO_qpc_ti_st")
-scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
+#scenarios<-c("FFANF_qpc_ti3_st", "ONEPW_qpc_ti3_st", "TLTL_qpc_ti3_st", "ECO_qpc_ti3_st")
+scenarios<-c("FFANF_qpc_ti4_st", "ONEPW_qpc_ti4_st", "TLTL_qpc_ti4_st", "ECO_qpc_ti4_st")
 periods<-c("2007-2010", "2010-2020", "2020-2030", "2030-2040", "2040-2050")
 #project<-""
 
@@ -765,16 +766,19 @@ MAGNET_tot <- bind_rows(MAGNET1_2, MAGNET3_raw, AC, AV, U, ST) %>%
                   year = as.numeric(year),
                   #scenario = revalue(scenario, c("ECO_qpc_t_st" = "ECO", "FFANF_qpc_t_st"  = "FFANF", "ONEPW_qpc_t_st" = "ONEPW",  "TLTL_qpc_t_st" = "TLTL")),
                   #scenario = revalue(scenario, c("ECO_qpc_ti_st" = "ECO", "FFANF_qpc_ti_st"  = "FFANF", "ONEPW_qpc_ti_st" = "ONEPW",  "TLTL_qpc_ti_st" = "TLTL")),
-                  scenario = revalue(scenario, c("ECO_qpc_ti3_st" = "ECO", "FFANF_qpc_ti3_st"  = "FFANF", "ONEPW_qpc_ti3_st" = "ONEPW",  "TLTL_qpc_ti3_st" = "TLTL")),
+                  #scenario = revalue(scenario, c("ECO_qpc_ti3_st" = "ECO", "FFANF_qpc_ti3_st"  = "FFANF", "ONEPW_qpc_ti3_st" = "ONEPW",  "TLTL_qpc_ti3_st" = "TLTL")),
+                  scenario = revalue(scenario, c("ECO_qpc_ti4_st" = "ECO", "FFANF_qpc_ti4_st"  = "FFANF", "ONEPW_qpc_ti4_st" = "ONEPW",  "TLTL_qpc_ti4_st" = "TLTL")),
                   #Modelrun = "qpc_t_st"
                   #Modelrun = "qpc_ti_st"
-                  Modelrun = "qpc_ti3_st"
+                  #Modelrun = "qpc_ti3_st"
+                  Modelrun = "qpc_ti4_st"
                   )
 #FSMIPPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results"
 FSMIPPath <- "Cache"
 #write.csv(MAGNET_tot, file.path(FSMIPPath, paste("MAGNET_FoodSecure_", Sys.Date(), ".csv", sep="")), row.names = F)
 #write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_t_st.csv"), row.names = F)
 #write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti_st.csv"), row.names = F)
-write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti3_st.csv"), row.names = F)
+#write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti3_st.csv"), row.names = F)
+write.csv(MAGNET_tot, file.path(FSMIPPath, "MAGNET_qpc_ti4_st.csv"), row.names = F)
 xtabs(~FSsector+variable, data = MAGNET_tot)
 
