@@ -106,7 +106,8 @@ dev.off()
 rm(plot_i)
 
 # Household regions
-hhRegions <- filter(MAGNETruns, FSregion %in% c("CHN", "GHA", "IDN", "IND", "KEN", "UGA")) 
+hhRegions <- filter(MAGNETruns, FSregion %in% c("CHN", "GHA", "IDN", "IND", "KEN", "UGA")) %>%
+  filter(!is.infinite(value)) # in YILD PFB there are a few infinite values that give problems when making a figure.
 
 plot_i <- hhRegions %>%
   group_by(variable, FSsector, unit) %>%
@@ -116,3 +117,5 @@ pdf(file = file.path(graphPath, "hhPlots.pdf"), width = 7, height = 7)
 plot_i$plots
 dev.off()
 rm(plot_i)
+
+
