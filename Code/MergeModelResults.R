@@ -34,14 +34,8 @@ plus <- function(x) {
 # ma function to calculate moving average
 ma <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
 
-# ANALYSIS
-# Combine files of four models and add FAOSTAT data
-# MAGNET2FS_REG <- read.csv(file.path(".\\Mappings\\FStoISO_MAGNETCountryAggregation.csv")) %>%
-#   dplyr::select(Region = FS_region_name, FS_region_name_short) %>%
-#   unique()
+## READ DATA
 
-
-# Read data per model
 # GLOBIOM
 # Process
 GLOBIOM <- read.csv("./Results/GLOBIOM_FoodSecure_7jun16.csv") %>% 
@@ -115,11 +109,15 @@ unique(IMAGE$variable)
 unique(IMAGE$sector)
 xtabs(~IMAGE$variable + IMAGE$sector)
 check <- filter(IMAGE, is.na(sector)) # FRTN lacks a sector
-
+xtabs(~MAGNET$variable + MAGNET$unit) # MAGNET file also includes nominal values in mil USD => deleted
 
 # MAGNET
-MAGNET <- read.csv("./Results/MAGNET_FoodSecure_2016-08-02.csv") %>%
-            rename(sector = FSsector)
+MAGNET <- read.csv("./Results/MAGNET_t_st_2016-11-11.csv") %>%
+            rename(sector = FSsector) %>%
+            select(-Modelrun) %>%
+            filter(unit != "mil USD")
+
+
 
 # Bind in one file
 SIMULATION <- rbind(MAGNET, IMAGE, GLOBIOM) %>% 
@@ -144,40 +142,40 @@ TOTAL2 <- TOTAL %>%
 xtabs(~model + variable, data = TOTAL2)
 xtabs(~model + sector, data = TOTAL2)
 
-write.csv(TOTAL2, "Results/TOTAL.csv", row.names = F)
+write.csv(TOTAL2, paste0("Results/TOTAL_", Sys.Date(), ".csv"), row.names = F)
 
-# Calculate total land
-
-data.land <- TOTAL %>%
-              filter(sector %in% c("CRPLND", "GRSLND")) %>%
-              group_by(model, FSregion, variable, scenario, year, unit) %>%
-              summarize(value = sum(value)) %>%
-              rename(Val = value, Scen = scenario, Year = year, Model = model) %>%
-              filter(FSregion == "WLD") %>%
-              mutate(Item = "AGRLND")
-
-# Combine with historical data
-# Load historial data and add 3 year moving average
-HIST <- read.csv(file.path(dataPath, "FAOSTAT\\FAOSTAT_hist_2015-09-24.csv")) %>% 
-        group_by(Model, Scenario, Region, Sector, Variable) %>% 
-        mutate(Value = as.numeric(ma(Value))) %>% # 3-year smoother
-        ungroup() %>% 
-        as.data.frame(.) 
-
-TOTAL <- rbind(HIST, SIMULATION)  
-
-
-# File for DataM
-DataM <- filter(TOTAL2, Variable %in% c("AREA", "PROD")) %>%
-          select(-Value) %>%
-          rename(Value = index)
-write.csv(DataM, file.path(dataPath, "DataM_test.csv"), row.names = F)
-
-xtabs(~Year + Region, data = HIST)
-
-# Calculations
-prodgr <- filter(MAGNET, variable == "PROD" & sector == "FOOD" & FSregion == "WLD") %>%
-          group_by(scenario) %>%
-          mutate(growth = ((value/value[year == 2010])-1)*100) %>%
-          filter(year == 2050)
-prodgr
+# # Calculate total land
+# 
+# data.land <- TOTAL %>%
+#               filter(sector %in% c("CRPLND", "GRSLND")) %>%
+#               group_by(model, FSregion, variable, scenario, year, unit) %>%
+#               summarize(value = sum(value)) %>%
+#               rename(Val = value, Scen = scenario, Year = year, Model = model) %>%
+#               filter(FSregion == "WLD") %>%
+#               mutate(Item = "AGRLND")
+# 
+# # Combine with historical data
+# # Load historial data and add 3 year moving average
+# HIST <- read.csv(file.path(dataPath, "FAOSTAT\\FAOSTAT_hist_2015-09-24.csv")) %>% 
+#         group_by(Model, Scenario, Region, Sector, Variable) %>% 
+#         mutate(Value = as.numeric(ma(Value))) %>% # 3-year smoother
+#         ungroup() %>% 
+#         as.data.frame(.) 
+# 
+# TOTAL <- rbind(HIST, SIMULATION)  
+# 
+# 
+# # File for DataM
+# DataM <- filter(TOTAL2, Variable %in% c("AREA", "PROD")) %>%
+#           select(-Value) %>%
+#           rename(Value = index)
+# write.csv(DataM, file.path(dataPath, "DataM_test.csv"), row.names = F)
+# 
+# xtabs(~Year + Region, data = HIST)
+# 
+# # Calculations
+# prodgr <- filter(MAGNET, variable == "PROD" & sector == "FOOD" & FSregion == "WLD") %>%
+#           group_by(scenario) %>%
+#           mutate(growth = ((value/value[year == 2010])-1)*100) %>%
+#           filter(year == 2050)
+# prodgr

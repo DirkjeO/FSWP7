@@ -21,7 +21,7 @@ AdditionalPackages <-  c("WDI", "countrycode")
 lapply(AdditionalPackages, library, character.only = TRUE)
 
 # SET PATHS
-wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
+wdPath <-"D:\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 
 
@@ -45,6 +45,8 @@ options(digits=2)
 # TOTAL_lineplot_i$plots
 # dev.off()
 
+# Load data
+TOTAL2 <- read.csv("Results/TOTAL_2016-11-11.csv")
 
 
 # Comparison GDP, POP and YEXO
