@@ -372,7 +372,7 @@ MAGNETHH_tot <- bind_rows(MAGNETHH1_2, AC, AV, U) %>%
          modelrun = "qpc_t_st")
 
 FSMIPPath <- "Cache"
-write.csv(MAGNETHH_tot, file.path(FSMIPPath, paste("MAGNETHH_ti4_st", Sys.Date(), ".csv", sep="")), row.names = F)
+write.csv(MAGNETHH_tot, file.path(FSMIPPath, paste("MAGNETHH_ti4_st_", Sys.Date(), ".csv", sep="")), row.names = F)
 xtabs(~FSsector+variable, data = MAGNETHH_tot)
 
 
