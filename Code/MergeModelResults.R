@@ -60,7 +60,7 @@ check <- GLOBIOM %>%
   arrange(model, scenario, FSregion, sector, variable, year) %>%
   group_by(model, scenario, FSregion, sector, variable) %>%
   filter(!any(year==2010))
-# write.csv(check, file = "./Results/GLOBIOMmiss.csv", row.names = F)
+write.csv(check, file = "./Results/GLOBIOMmiss.csv", row.names = F)
 
 GLOBIOM <- GLOBIOM %>%
   arrange(model, scenario, FSregion, sector, variable, year) %>%
