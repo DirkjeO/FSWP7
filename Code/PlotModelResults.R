@@ -46,12 +46,13 @@ options(digits=2)
 # dev.off()
 
 # Load data
-TOTAL2 <- read.csv("Results/TOTAL_2016-11-11.csv")
+TOTAL2 <- read.csv("Results/TOTAL_2016-11-15.csv")
 
 
 # Comparison GDP, POP and YEXO
 GDP_POP_YEXO <- TOTAL2 %>%
-  filter(variable %in% c("POPT", "GDPT", "YEXO"))
+  filter(variable %in% c("POPT", "GDPT", "YEXO"), unit != "dm t/ha") 
+# need to filter out dm t/ha (or fm t/ha - index is the same) to remove duplicate with fm t/ha
   
 xtabs(~ model + variable, data = GDP_POP_YEXO)
 
@@ -59,10 +60,11 @@ xtabs(~ model + variable, data = GDP_POP_YEXO)
 GDP_POP_YEXO_lineplot_i <- GDP_POP_YEXO %>%
   group_by(variable, sector) %>%
   select(-value) %>%
+  
   rename(value = index) %>%
   do(plots = lineplot_f(., "Index")) 
 
-pdf(file = "./Graphs/GDP_POP_YEXO_i.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/GDP_POP_YEXO_i2.pdf", width = 7, height = 7)
 GDP_POP_YEXO_lineplot_i$plots
 dev.off()
 

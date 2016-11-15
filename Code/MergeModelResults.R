@@ -14,7 +14,8 @@ AdditionalPackages <-  c("WDI", "countrycode")
 lapply(AdditionalPackages, library, character.only = TRUE)
 
 # SET PATHS
-wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
+wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
+#wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 
 
@@ -38,7 +39,7 @@ ma <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
 
 # GLOBIOM
 # Process
-GLOBIOM <- read.csv("./Results/GLOBIOM_FoodSecure_7jun16.csv") %>% 
+GLOBIOM <- read.csv("./Results/GLOBIOM_FoodSecure_8oct16.csv") %>% 
   rename(variable = Var, sector = Item, scenario = Scen, year = Year, value = Val, FSregion = Reg, unit = Unit) %>% 
   mutate(model = "GLOBIOM", 
          variable =toupper(variable), 
@@ -57,16 +58,19 @@ xtabs(~GLOBIOM$sector + GLOBIOM$variable)
 # Check if there are variables with missing information for 2010
 # There are a few combination in GLOBIOM that lack 2010 data
 check <- GLOBIOM %>%
-  arrange(model, scenario, FSregion, sector, variable, year) %>%
-  group_by(model, scenario, FSregion, sector, variable) %>%
+  arrange(model, scenario, FSregion, sector, variable, unit, year) %>%
+  group_by(model, scenario, FSregion, sector, unit, variable) %>%
   filter(!any(year==2010))
-write.csv(check, file = "./Results/GLOBIOMmiss.csv", row.names = F)
+#write.csv(check, file = "./Results/GLOBIOMmiss.csv", row.names = F)
 
 GLOBIOM <- GLOBIOM %>%
-  arrange(model, scenario, FSregion, sector, variable, year) %>%
-  group_by(model, scenario, FSregion, sector, variable) %>%
-  filter(any(year==2010)) # to remove values with missing 2010 CHECK with AREA!!??
+  arrange(model, scenario, FSregion, sector, variable, unit, year) %>%
+  group_by(model, scenario, FSregion, sector, variable, unit) %>%
+  filter(any(year==2010)) # to remove values with missing 2010 
 xtabs(~sector + variable, data = GLOBIOM)
+
+
+checkG <- filter(GLOBIOM, sector == "CRP", variable == "YEXO")
 
 # IMAGE
 IMAGE2FSRegion <- read.csv("./Mappings/IMAGE2FSRegion.csv")
@@ -109,13 +113,15 @@ unique(IMAGE$variable)
 unique(IMAGE$sector)
 xtabs(~IMAGE$variable + IMAGE$sector)
 check <- filter(IMAGE, is.na(sector)) # FRTN lacks a sector
-xtabs(~MAGNET$variable + MAGNET$unit) # MAGNET file also includes nominal values in mil USD => deleted
 
 # MAGNET
 MAGNET <- read.csv("./Results/MAGNET_t_st_2016-11-11.csv") %>%
             rename(sector = FSsector) %>%
             select(-Modelrun) %>%
             filter(unit != "mil USD")
+
+# check
+xtabs(~MAGNET$variable + MAGNET$unit) # MAGNET file also includes nominal values in mil USD => deleted
 
 
 
@@ -128,13 +134,8 @@ TOTAL <- SIMULATION
 
 
 # Index (2010=100)
-# CHECK: GLOBIOM has various results for CALO with different units
-# CHECK: GLOBIOM PROD has wrong unit.
-# CHECK: product groups GLOBION. VFN = V_F? AGR in MAGNET?
-# CHECK HARMONISATION FOOD GROUPS IN TEMPLATE.
-
 TOTAL2 <- TOTAL %>%
-  arrange(model, scenario, FSregion, sector, variable, year) %>%
+  arrange(model, scenario, FSregion, sector, variable, year, unit) %>%
   group_by(model, scenario, FSregion, sector, variable, unit) %>%
   mutate(index = value/value[year==2010]*100) %>%
   arrange(model, scenario, variable, FSregion, sector, year)
@@ -143,6 +144,7 @@ xtabs(~model + variable, data = TOTAL2)
 xtabs(~model + sector, data = TOTAL2)
 
 write.csv(TOTAL2, paste0("Results/TOTAL_", Sys.Date(), ".csv"), row.names = F)
+
 
 # # Calculate total land
 # 
