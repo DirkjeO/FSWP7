@@ -54,7 +54,7 @@ xtabs(~ FSregion + model, data = TOTAL)
 ```
 
 \newpage
-# Item coverage
+# Sector coverage
 ```{r item, echo = FALSE, message = FALSE}
 xtabs(~ sector + model, data = TOTAL)
 ```
