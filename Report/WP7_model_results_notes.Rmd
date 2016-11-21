@@ -1,0 +1,72 @@
+---
+title: "FOODSECURE WP7"
+author: "Michiel van Dijk"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data, echo = FALSE, message = FALSE}
+library(readr)
+dataPath <- "C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
+TOTAL <- read.csv(file.path(dataPath, "Results\\TOTAL_2016-11-15.csv"))
+```
+
+# Introduction
+This document provides summary information on the FOODSECURE model results database. At present the database includes data from the following models:
+
+* MAGNET
+* GLOBIOM
+* IMAGE
+
+The database is stored in the project dropbox model results folder under the name _TOTAL.csv_. In line with the reporting template the database includes the following variables:
+
+- year
+- sector
+- item
+- FSregion
+- variable
+- unit
+- value 
+- model
+- scenario
+- index: an index (2010 = 1)
+
+# Missing and 'strange' data
+At the moment I am doing some quick checks to analyse if data is missing or otherwise is not correct. The checks involve making graphs of all variables across models and regions, which are stored in the folder _graphs_ and several simple cross tables (see below). I only had time to take a superficial look at the main drivers: GDP, POP and YEXO. These are the three key exogenous drivers and are supposed to be the same (overlapping lines) across models. Nevertheless, the figures show (minor) differences. *POPT* and *GDPT* seem more or less consistent. For MENA MAGNET and GLOBIOM use a different regional definition so that explains part of the difference. *YEXO* shows considerable differences across models, in particular SASIA. This might becaused by the different definitions the models use for yield (e.g. in monetary values such as MAGNET and CAPRI, dm/ha or fm/ha) or the weights to aggregate different crops.
+
+The tables on the following pages summarise the model results database and show, which variables and units are covered by the three models.
+
+
+\newpage
+# Variable coverage
+```{r variable, echo = FALSE, message = FALSE}
+xtabs(~ variable + model, data = TOTAL)
+```
+
+\newpage
+# Region coverage
+```{r region, echo = FALSE, message = FALSE}
+xtabs(~ FSregion + model, data = TOTAL)
+```
+
+\newpage
+# Sector coverage
+```{r item, echo = FALSE, message = FALSE}
+xtabs(~ sector + model, data = TOTAL)
+```
+
+\newpage
+# Unit coverage
+```{r unit, echo = FALSE, message = FALSE}
+xtabs(~ unit + model, data = TOTAL)
+```
+
+\newpage
+# Scenario coverage
+```{r scenario, echo = FALSE, message = FALSE}
+xtabs(~ scenario + model, data = TOTAL)
+```
