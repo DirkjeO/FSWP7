@@ -223,7 +223,7 @@ FOOD <- bind_rows(FOOD1, FOOD2, FOOD3, FOOD4, FOOD5) %>%
         summarize(value = sum(value, na.rm=T)) %>%
         rename(TRAD_COMM = i) %>%
         mutate(variable = "FOOD",
-               unit = "mil 2007 con USD")
+               unit = "mil 2007 USD")
 
 # FEED
 # P1
@@ -315,25 +315,27 @@ FEEDsec <- bind_rows(FEED1, FEED2, FEED3, FEED4, FEED5) %>%
   summarize(value = sum(value)) %>%
   rename(TRAD_COMM = i) %>%
   mutate(variable = "FEEDsec",
-         unit = "mil 2007 con USD")
+         unit = "mil 2007 USD")
 
 FEED <- FEEDsec %>%
   group_by(scenario, year, REG, TRAD_COMM) %>%
   summarize(value = sum(value)) %>%
   mutate(variable = "FEED",
-         unit = "mil 2007 con USD")
+         unit = "mil 2007 USD")
 
 # OTHU
 # CONS = FOOD + FEED + OTHU
 # Aggregate FEED
 FEEDou <- FEED %>%
-          rename(FEED = value)
+          rename(FEED = value) %>%
+          select(-variable, -unit)
 
 # CONS over pa
 CONSou <- filter(CONS, TRAD_COMM %in% pa) 
 
 # FOOD
-FOODou <- rename(FOOD, FOOD = value)
+FOODou <- rename(FOOD, FOOD = value) %>%
+  select(-variable, -unit)
 
 # OTHU
 OTHU <- left_join(CONSou, FEEDou) %>%
@@ -342,7 +344,7 @@ OTHU <- left_join(CONSou, FEEDou) %>%
                value = CONS-FOOD-FEED) %>%
         select(-CONS, -FOOD, -FEED) %>%
         mutate(variable = "OTHU",
-         unit = "mil 2007 con USD")
+         unit = "mil 2007 USD")
 
 
 # Clean up

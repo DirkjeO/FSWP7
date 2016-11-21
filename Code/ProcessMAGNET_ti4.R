@@ -491,7 +491,7 @@ MAGNET3_raw[["XPRX"]] <- MAGNET1_2 %>%
   left_join(., GDPdef) %>%
   mutate(value = EXPOval/EXPO/GDPval*GDPT,
          variable = "XPRX",
-         unit = "Paasche index") %>%
+         unit = "index (paasche)") %>%
   select(-EXPO, -EXPOval, -GDPT, -GDPval)
 rm(GDPdef)
 
@@ -540,7 +540,7 @@ AV[["AV3a"]] <- MAGNET1_2 %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "LSP",
-         unit = "grams/cap/day",
+         unit = "g prot/cap/day",
          variable = "PROT")
 
 AV[["AV3b"]] <- MAGNET1_2 %>% 
@@ -548,7 +548,7 @@ AV[["AV3b"]] <- MAGNET1_2 %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "LSPFSH",
-         unit = "grams/cap/day",
+         unit = "g prot/cap/day",
          variable = "PROT")
 
 
@@ -578,7 +578,7 @@ XPRP_p <- MAGNET1_2 %>%
   left_join(., GDPdef) %>%
   mutate(value = PRODval/PROD/GDPval*GDPT,
          variable = "XPRP",
-         unit = "Paasche index") %>%
+         unit = "index (paasche)") %>%
   select(-GDPT, -GDPval, -PROD, -PRODval)
 rm(GDPdef)        
 
@@ -656,7 +656,7 @@ XFPI_p <- MAGNET1_2 %>%
   left_join(., GDPdef) %>%
   mutate(value = PCONSval/PCONS/GDPval*GDPT,
          variable = "XFPI",
-         unit = "Paasche index") %>%
+         unit = "index (paasche)") %>%
   select(-GDPT, -GDPval, -PCONS, -PCONSval)
 rm(GDPdef)    
 
@@ -699,7 +699,7 @@ AC[["XPRM"]] <-  MAGNET1_2 %>%
   mutate(value = VIPMval/VIPM/GDPval*GDPT,
          value = ifelse(is.nan(value), NA, value), # for some combinations data is zero resulting in NAN
          variable = "XPRM",
-         unit = "Paasche index") %>%
+         unit = "index (paasche)") %>%
   select(-GDPT, -GDPval, -VIPM, -VIPMval)
 rm(GDPdef)  
 
