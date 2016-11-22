@@ -267,7 +267,7 @@ AV[["AV3ah"]] <- MAGNETHH1_2 %>%
   group_by(scenario, FSregion, HHLD, year) %>%
   summarize(value = (value[variable == "NQSECTH"]/value[variable == "POPTH"]/365)) %>%
   mutate(FSsector = "LSP",
-         unit = "grams/cap/day",
+         unit = "g prot/cap/day",
          variable = "PROT") %>%
   filter(!is.infinite(value))
 
@@ -277,7 +277,7 @@ AV[["AV3bh"]] <- MAGNETHH1_2 %>%
   group_by(scenario, FSregion, HHLD, year) %>%
   summarize(value = (value[variable == "NQSECTH"]/value[variable == "POPTH"]/365)) %>%
   mutate(FSsector = "LSPFSH",
-         unit = "grams/cap/day",
+         unit = "g prot/cap/day",
          variable = "PROT") %>%
   filter(!is.infinite(value))
 
