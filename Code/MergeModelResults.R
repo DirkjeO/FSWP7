@@ -68,9 +68,8 @@ GLOBIOM <- GLOBIOM %>%
   group_by(model, scenario, FSregion, sector, variable, unit) %>%
   filter(any(year==2010)) # to remove values with missing 2010 
 xtabs(~sector + variable, data = GLOBIOM)
+xtabs(~unit + variable, data = GLOBIOM)
 
-
-checkG <- filter(GLOBIOM, sector == "CRP", variable == "YEXO")
 
 # IMAGE
 IMAGE2FSRegion <- read.csv("./Mappings/IMAGE2FSRegion.csv")
@@ -115,18 +114,28 @@ xtabs(~IMAGE$variable + IMAGE$sector)
 check <- filter(IMAGE, is.na(sector)) # FRTN lacks a sector
 
 # MAGNET
-MAGNET <- read.csv("./Results/MAGNET_t_st_2016-11-11.csv") %>%
+MAGNET <- read.csv("./Results/MAGNET_t_st_2016-11-21.csv") %>%
             rename(sector = FSsector) %>%
             select(-Modelrun) %>%
-            filter(unit != "mil USD")
+            filter(unit != "mil USD") %>%
+            mutate(unit = ifelse(variable %in% c("NQSECT", "NQT"), tolower(unit), unit)) # lowercase units
+
+# Remove lower level regional aggregations
+MAGNET <- filter(MAGNET, !(FSregion %in% c("CHN", "GHA", "IDN", " IND", "NAF", "SAF", "UGA", "WAF", "KEN")))
+
+# Remove _M sectors that do not include primary processing
+Xsector <- unique(MAGNET$sector[grep("_M", MAGNET$sector)])
+MAGNET <- filter(MAGNET, !(sector %in% Xsector))
+
 
 # check
-xtabs(~MAGNET$variable + MAGNET$unit) # MAGNET file also includes nominal values in mil USD => deleted
-
+xtabs(~MAGNET$variable + MAGNET$unit) 
+xtabs(~MAGNET$variable + MAGNET$FSregion) 
+xtabs(~MAGNET$variable + MAGNET$sector) 
 
 
 # Bind in one file
-SIMULATION <- rbind(MAGNET, IMAGE, GLOBIOM) %>% 
+SIMULATION <- bind_rows(MAGNET, IMAGE, GLOBIOM) %>% 
               filter(year>=2010)
 
 TOTAL <- SIMULATION
@@ -140,44 +149,9 @@ TOTAL2 <- TOTAL %>%
   mutate(index = value/value[year==2010]*100) %>%
   arrange(model, scenario, variable, FSregion, sector, year)
 
-xtabs(~model + variable, data = TOTAL2)
-xtabs(~model + sector, data = TOTAL2)
+xtabs(~variable + model, data = TOTAL2)
+xtabs(~sector + model, data = TOTAL2)
+xtabs(~unit + model, data = TOTAL2)
 
+# Save files
 write.csv(TOTAL2, paste0("Results/TOTAL_", Sys.Date(), ".csv"), row.names = F)
-
-
-# # Calculate total land
-# 
-# data.land <- TOTAL %>%
-#               filter(sector %in% c("CRPLND", "GRSLND")) %>%
-#               group_by(model, FSregion, variable, scenario, year, unit) %>%
-#               summarize(value = sum(value)) %>%
-#               rename(Val = value, Scen = scenario, Year = year, Model = model) %>%
-#               filter(FSregion == "WLD") %>%
-#               mutate(Item = "AGRLND")
-# 
-# # Combine with historical data
-# # Load historial data and add 3 year moving average
-# HIST <- read.csv(file.path(dataPath, "FAOSTAT\\FAOSTAT_hist_2015-09-24.csv")) %>% 
-#         group_by(Model, Scenario, Region, Sector, Variable) %>% 
-#         mutate(Value = as.numeric(ma(Value))) %>% # 3-year smoother
-#         ungroup() %>% 
-#         as.data.frame(.) 
-# 
-# TOTAL <- rbind(HIST, SIMULATION)  
-# 
-# 
-# # File for DataM
-# DataM <- filter(TOTAL2, Variable %in% c("AREA", "PROD")) %>%
-#           select(-Value) %>%
-#           rename(Value = index)
-# write.csv(DataM, file.path(dataPath, "DataM_test.csv"), row.names = F)
-# 
-# xtabs(~Year + Region, data = HIST)
-# 
-# # Calculations
-# prodgr <- filter(MAGNET, variable == "PROD" & sector == "FOOD" & FSregion == "WLD") %>%
-#           group_by(scenario) %>%
-#           mutate(growth = ((value/value[year == 2010])-1)*100) %>%
-#           filter(year == 2050)
-# prodgr
