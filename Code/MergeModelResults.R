@@ -14,8 +14,8 @@ AdditionalPackages <-  c("WDI", "countrycode")
 lapply(AdditionalPackages, library, character.only = TRUE)
 
 # SET PATHS
-wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
-#wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
+#wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
+wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 
 
@@ -39,7 +39,7 @@ ma <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
 
 # GLOBIOM
 # Process
-GLOBIOM <- read.csv("./Results/GLOBIOM_FoodSecure_8oct16.csv") %>% 
+GLOBIOM <- read.csv("./Results/GLOBIOM_FoodSecure_15dec16.csv") %>% 
   rename(variable = Var, sector = Item, scenario = Scen, year = Year, value = Val, FSregion = Reg, unit = Unit) %>% 
   mutate(model = "GLOBIOM", 
          variable =toupper(variable), 
@@ -114,7 +114,7 @@ xtabs(~IMAGE$variable + IMAGE$sector)
 check <- filter(IMAGE, is.na(sector)) # FRTN lacks a sector
 
 # MAGNET
-MAGNET <- read.csv("./Results/MAGNET_t_st_2016-11-21.csv") %>%
+MAGNET <- read.csv("./Results/MAGNET_t_st_2016-12-16.csv") %>%
             rename(sector = FSsector) %>%
             select(-Modelrun) %>%
             filter(unit != "mil USD") %>%
