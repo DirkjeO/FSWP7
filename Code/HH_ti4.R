@@ -177,7 +177,7 @@ MAGNETHH1_raw[["CONSH"]] <- rbind(VDPMH, VIPMH) %>%
   rename(REG = HH_REG) %>%
   ungroup() %>%
   mutate(variable = "CONSH",
-         unit = "mil 2007 USD",
+         unit = "M USD 2007",
          REG = toupper(REG))
 
 ############################################
@@ -189,7 +189,7 @@ MAGNETHH2_raw <- list()
 MAGNETHH2_raw[["POPTH"]] <- constant2.f("POPTH", "BaseData_b.gdx", "POPH", c("HHLD", "HH_REG"), c("HHLD", "HH_REG"), "poph", c("HHLD", "HH_REG")) %>%
   rename(REG = HH_REG) %>%
   mutate(REG = toupper(REG), 
-         unit = "mil pers",
+         unit = "Mpers",
          FSsector = "TOT") 
  
 #####################
@@ -267,7 +267,7 @@ AV[["AV3ah"]] <- MAGNETHH1_2 %>%
   group_by(scenario, FSregion, HHLD, year) %>%
   summarize(value = (value[variable == "NQSECTH"]/value[variable == "POPTH"]/365)) %>%
   mutate(FSsector = "LSP",
-         unit = "g prot/cap/day",
+         unit = "g prt/cap/day",
          variable = "PROT") %>%
   filter(!is.infinite(value))
 
@@ -277,7 +277,7 @@ AV[["AV3bh"]] <- MAGNETHH1_2 %>%
   group_by(scenario, FSregion, HHLD, year) %>%
   summarize(value = (value[variable == "NQSECTH"]/value[variable == "POPTH"]/365)) %>%
   mutate(FSsector = "LSPFSH",
-         unit = "g prot/cap/day",
+         unit = "g prt/cap/day",
          variable = "PROT") %>%
   filter(!is.infinite(value))
 
@@ -299,7 +299,7 @@ VPA <- bind_rows(
   group_by(scenario, REG, HHLD, year, TRAD_COMM) %>%
   summarize(value = sum(value)) %>%
   mutate(variable = "VPA",
-         unit = "mil USD")
+         unit = "M USD")
 
 VPA <- bind_rows(
   subtot_f(VPA, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_food),
@@ -324,7 +324,7 @@ AC[["HINC"]] <- MAGNETHH1_2 %>%
   filter(variable %in% c("POPTH", "CONSH") & FSsector %in% c("TOT")) %>%
   group_by(scenario, FSregion, FSsector, HHLD, year) %>%
   summarize(value = (value[variable == "CONSH"]/value[variable == "POPTH"])) %>%
-  mutate(unit = "USD/cap",
+  mutate(unit = "2007 USD/cap",
          variable = "HINC") %>%
   filter(!is.infinite(value))
   
@@ -333,7 +333,7 @@ AC[["CONS"]] <- MAGNETHH1_2 %>%
   filter((variable %in% c("POPTH") & FSsector %in% c("TOT")) | (variable %in% c("CONSH") & FSsector %in% c("FOOD"))) %>%
   group_by(scenario, FSregion, HHLD, year) %>%
   summarize(value = (value[variable == "CONSH"]/value[variable == "POPTH"])) %>%
-  mutate(unit = "USD/cap",
+  mutate(unit = "2007 USD/cap",
          variable = "CONSH", 
          FSsector = "FOOD") %>%
   filter(!is.infinite(value))
