@@ -540,7 +540,7 @@ AV[["AV3a"]] <- MAGNET1_2 %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "LSP",
-         unit = "g prt/cap/day",
+         unit = "g prt/cap/d",
          variable = "PROT")
 
 AV[["AV3b"]] <- MAGNET1_2 %>% 
@@ -548,7 +548,7 @@ AV[["AV3b"]] <- MAGNET1_2 %>%
   group_by(scenario, FSregion, year) %>%
   summarize(value = (value[variable == "NQSECT"]/value[variable == "POPT"]/365)) %>%
   mutate(FSsector = "LSPFSH",
-         unit = "g prt/cap/day",
+         unit = "g prt/cap/d",
          variable = "PROT")
 
 
