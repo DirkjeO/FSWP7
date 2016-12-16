@@ -43,16 +43,7 @@ GLOBIOM <- read.csv("./Results/GLOBIOM_FoodSecure_15dec16.csv") %>%
   rename(variable = Var, sector = Item, scenario = Scen, year = Year, value = Val, FSregion = Reg, unit = Unit) %>% 
   mutate(model = "GLOBIOM", 
          variable =toupper(variable), 
-         sector=toupper(sector),
-         FSregion = revalue(FSregion, c("1_SubSaharanAfrica" = "SSA",
-                                      "1_LatinAmerica" = "LAC",
-                                      "1_MENA" = "MENA",
-                                      "1_EastAsia" = "EASIA",
-                                      "1_EU28" = "EU",
-                                      "1_SouthAsia" = "SASIA",
-                                      "1_Other" = "ROW",
-                                      "WLD" = "WLD"))) %>%
-  filter(FSregion %in% c("SSA", "LAC", "MENA", "EASIA", "EU", "SASIA", "ROW", "WLD")) 
+         sector=toupper(sector)) 
 xtabs(~GLOBIOM$sector + GLOBIOM$variable)
 
 # Check if there are variables with missing information for 2010
@@ -121,7 +112,7 @@ MAGNET <- read.csv("./Results/MAGNET_t_st_2016-12-16.csv") %>%
             mutate(unit = ifelse(variable %in% c("NQSECT", "NQT"), tolower(unit), unit)) # lowercase units
 
 # Remove lower level regional aggregations
-MAGNET <- filter(MAGNET, !(FSregion %in% c("CHN", "GHA", "IDN", " IND", "NAF", "SAF", "UGA", "WAF", "KEN")))
+MAGNET <- filter(MAGNET, !(FSregion %in% c("CHN", "GHA", "IDN", "IND", "NAF", "SAF", "UGA", "EAF", "WAF", "KEN")))
 
 # Remove _M sectors that do not include primary processing
 Xsector <- unique(MAGNET$sector[grep("_M", MAGNET$sector)])
@@ -152,6 +143,7 @@ TOTAL2 <- TOTAL %>%
 xtabs(~variable + model, data = TOTAL2)
 xtabs(~sector + model, data = TOTAL2)
 xtabs(~unit + model, data = TOTAL2)
+xtabs(~FSregion + model, data = TOTAL2)
 
 # Save files
 write.csv(TOTAL2, paste0("Results/TOTAL_", Sys.Date(), ".csv"), row.names = F)
