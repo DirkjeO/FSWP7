@@ -1,34 +1,62 @@
-# PROJECT: FOODSECURE WP7
-# ``````````````````````````````````````````````````````````````````````````````````````````````````
-# ``````````````````````````````````````````````````````````````````````````````````````````````````
-# Merge resuls from different models
-# ``````````````````````````````````````````````````````````````````````````````````````````````````
-# `````````````````````````````````````````````````````````````````````````````````````````````````` 
+#'========================================================================================================================================
+#' Project:  FOODSECURE WP7
+#' Subject:  Plot and compare model results
+#' Author:   Michiel van Dijk
+#' Contact:  michiel.vandijk@wur.nl
+#'========================================================================================================================================
 
-# QUESTIONS
-# FOOD PRICES? Definition of FOOD in GLOBIOM.
-# COMPARE YEXO across models!
-# NEED TO BE CLEAR ABOUT AGGREGATES: FOOD, AGR, ETC.
-# DIFFERENCE AREA AND LAND in IMAGE
-# Unit of LDEM in MAGNET -> higher than other models.
-
-# PACKAGES
-BasePackages <- c("foreign", "stringr", "gdata", "car", "zoo", "tidyr", "RColorBrewer", "plyr", "dplyr", "ggplot2", "openxlsx", "scales", "lazyeval", "ggthemes", "scales")
+### PACKAGES
+BasePackages<- c("tidyverse", "readxl", "stringr", "car", "scales", "RColorBrewer")
 lapply(BasePackages, library, character.only = TRUE)
-#SpatialPackages <- c("rgdal", "gdalUtils", "ggmap", "raster", "rasterVis", "rgeos", "sp", "mapproj", "maptools", "proj4")
+#SpatialPackages<-c("rgdal", "ggmap", "raster", "rasterVis", "rgeos", "sp", "mapproj", "maptools", "proj4", "gdalUtils")
 #lapply(SpatialPackages, library, character.only = TRUE)
-AdditionalPackages <-  c("WDI", "countrycode")
-lapply(AdditionalPackages, library, character.only = TRUE)
+#AdditionalPackages <- c("WDI")
+#lapply(AdditionalPackages, library, character.only = TRUE)
 
-# SET PATHS
-wdPath <-"D:\\Dropbox\\FOODSECURE Scenarios"
+### SET WORKING DIRECTORY
+wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
+#wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 
-
-# R SETTINGS
-options(scipen=99) # surpress scientific notation
+### R SETTINGS
+options(scipen=999) # surpress scientific notation
 options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e.g. csv) is not turned into factors
-options(digits=2)
+options(digits=4)
+
+### FUNCTIONS
+# Line plot to compare models
+lineplot_f <- function(df, yas){
+  
+  title = unique(with(df, paste(variable, sector, sep="_")))
+  point <- filter(df, year == 2050)
+  
+  p = ggplot() +
+    geom_line(data = df, aes(x = year, y = value, linetype = model, colour = scenario), size = 0.5) +
+    geom_point(data = point, aes(x = year, y = value, shape = model, colour = scenario)) +
+    scale_colour_manual(values = c("green","cyan","red","purple"), name="Scenario")+ 
+    scale_linetype_manual(values=c("solid","longdash", "dotted"), name = "Model") +
+    scale_shape_manual(values=c(16,17,18), name = "Model") +
+    ylab(yas) + xlab("") +
+    facet_wrap(~region, scale = "free")
+  
+  p = p +ggtitle(title) 
+  
+  p = p + guides(fill = guide_legend(keywidth = 1, keyheight = 1, override.aes = 
+                                       list(alpha = 0.1, size = 0.5, colour = c("green","cyan","red","purple"))))
+  
+  p = p + theme_classic() +
+    theme(panel.border = element_blank(),
+          axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "black"),
+          axis.line.y = element_line(size = 0.5, linetype = "solid", colour = "black")) +
+    scale_x_continuous(limits = c(2010,2050.1), breaks = seq(2010,2050,by=10),expand=c(0,0)) + # note that: Limits sets the limits for the axes (added 0.1) but always some space is added. Latter is controlled by expand
+    scale_y_continuous(labels = comma) +
+    theme(legend.background=element_blank()) +
+    theme(legend.key=element_rect(size=0.5, color="white"), # Increase space between legend boxes - doubt if it works
+          strip.background = element_rect(colour="white", fill="white")) # Remove box and background of facet
+  
+  
+  p
+}
 
 
 # CALO EMIS EXPO FEED FOOD FRTN GDPpc GDPval IMDR IMPO NETT  NQT OTHU XCPI XPRI XPRP 
@@ -46,7 +74,7 @@ options(digits=2)
 # dev.off()
 
 # Load data
-TOTAL2 <- read.csv("Results/TOTAL_2016-11-15.csv")
+TOTAL2 <- read.csv("Results/TOTAL_2016-12-21.csv")
 
 
 # Comparison GDP, POP and YEXO
@@ -55,17 +83,24 @@ GDP_POP_YEXO <- TOTAL2 %>%
 # need to filter out dm t/ha (or fm t/ha - index is the same) to remove duplicate with fm t/ha
   
 xtabs(~ model + variable, data = GDP_POP_YEXO)
+xtabs(~ model + scenario, data = GDP_POP_YEXO)
+xtabs(~ model + unit, data = GDP_POP_YEXO)
+xtabs(~ variable + unit, data = GDP_POP_YEXO)
+
+check <- filter(GDP_POP_YEXO, variable == "GDPT") %>%
+  select(-value, -unit) %>%
+  spread(model, index)
 
 # Line plot - index
 GDP_POP_YEXO_lineplot_i <- GDP_POP_YEXO %>%
   group_by(variable, sector) %>%
   select(-value) %>%
-  
   rename(value = index) %>%
+  spread(scenario, value)
   do(plots = lineplot_f(., "Index")) 
 
-pdf(file = "./Graphs/GDP_POP_YEXO_i2.pdf", width = 7, height = 7)
-GDP_POP_YEXO_lineplot_i$plots
+pdf(file = "./Graphs/GDP_POP_YEXO_i.pdf", width = 7, height = 7)
+GDP_POP_YEXO_lineplot_i$plots[1]
 dev.off()
 
 # Comparison of consumption
@@ -158,7 +193,7 @@ dev.off()
 
 YILD_PROD_AREA <- filter(TOTAL2, variable %in% c("AREA", "PROD", "YILD"), unit != "USD 2000/cap/d") %>% 
   filter(model != "IMAGE")
-xtabs(~model + sector + FSregion, data = YILD_PROD_AREA)
+xtabs(~model + sector + region, data = YILD_PROD_AREA)
 
 # compare index
 YILD_PROD_AREA_lineplot_i <- YILD_PROD_AREA %>%
@@ -240,11 +275,11 @@ histcal_w <- read.csv("./Data/Add_data/calcpcpd.csv") %>%
   summarize(value = sum(value*POP, na.rm = T)/sum(POP, na.rm = T)) %>%
   mutate(Region = "WLD")
 
-scen <- expand.grid(Scenario = unique(TOTAL$scenario), Region = unique(TOTAL$FSregion))  
+scen <- expand.grid(Scenario = unique(TOTAL$scenario), Region = unique(TOTAL$region))  
 histcal <- rbind(histcal_r, histcal_w) %>%
   left_join(scen, .) %>%
   filter(year <=2010) %>%
-  rename(scenario = Scenario, FSregion = Region) %>%
+  rename(scenario = Scenario, region = Region) %>%
   filter(year >=1990)
 
 histcal_base <- filter(histcal, year == 2010) %>%
