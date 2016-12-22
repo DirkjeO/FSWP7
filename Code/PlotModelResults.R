@@ -87,26 +87,22 @@ xtabs(~ model + scenario, data = GDP_POP_YEXO)
 xtabs(~ model + unit, data = GDP_POP_YEXO)
 xtabs(~ variable + unit, data = GDP_POP_YEXO)
 
-check <- filter(GDP_POP_YEXO, variable == "GDPT") %>%
-  select(-value, -unit) %>%
-  spread(model, index)
-
 # Line plot - index
 GDP_POP_YEXO_lineplot_i <- GDP_POP_YEXO %>%
   group_by(variable, sector) %>%
   select(-value) %>%
   rename(value = index) %>%
-  spread(scenario, value)
   do(plots = lineplot_f(., "Index")) 
 
 pdf(file = "./Graphs/GDP_POP_YEXO_i.pdf", width = 7, height = 7)
-GDP_POP_YEXO_lineplot_i$plots[1]
+GDP_POP_YEXO_lineplot_i$plots
 dev.off()
 
 # Comparison of consumption
+# Filter out 1000 t dm otherwise there are two units per variable
 CONS <- TOTAL2 %>% 
-        filter(variable == "CONS")
-xtabs(~model + sector, data = CONS)
+        filter(variable == "CONS", unit != "1000 t dm")
+xtabs(~unit + sector, data = CONS)
 
 # Line plot - index
 CONS_lineplot_i <- CONS %>%
@@ -122,6 +118,7 @@ dev.off()
 # Comparison AREA and LAND
 LAND_AREA <- TOTAL2 %>%
   filter(variable %in% c("AREA", "LAND")) 
+xtabs(~unit + model + sector, data = LAND_AREA)
 
 
 inf.nan.na.clean_f<-function(x){
@@ -190,10 +187,12 @@ LAND_AREA_baseplot$plots
 dev.off()
 
 ## Comparison YILD, PROD AND AREA
-
-YILD_PROD_AREA <- filter(TOTAL2, variable %in% c("AREA", "PROD", "YILD"), unit != "USD 2000/cap/d") %>% 
+YILD_PROD_AREA <- filter(TOTAL2, variable %in% c("AREA", "PROD", "YILD"), !(unit %in% c("1000 t", "1000 t dm", "dm t/ha", "M USD 2007/cap"))) %>% 
   filter(model != "IMAGE")
-xtabs(~model + sector + region, data = YILD_PROD_AREA)
+xtabs(~model + unit, data = YILD_PROD_AREA)
+
+#check <- filter(YILD_PROD_AREA, sector == "PRIMFOOD", variable == "PROD")
+#xtabs(~model + unit, data = check)
 
 # compare index
 YILD_PROD_AREA_lineplot_i <- YILD_PROD_AREA %>%
@@ -210,6 +209,7 @@ dev.off()
 # Comparison FS indicators
 # Calorie consumption per capita per day
 CALO <- filter(TOTAL2, variable == "CALO" & unit == "kcal/cap/d" & sector == "TOT")
+xtabs(~model + unit, data = CALO)
 
 # compare index
 CALO_lineplot_i <- CALO %>%
