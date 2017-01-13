@@ -14,8 +14,8 @@ lapply(BasePackages, library, character.only = TRUE)
 #lapply(AdditionalPackages, library, character.only = TRUE)
 
 ### SET WORKING DIRECTORY
-wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
-#wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
+#wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
+wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 
 ### R SETTINGS
@@ -26,8 +26,9 @@ options(digits=4)
 ### FUNCTIONS
 # Line plot to compare models
 lineplot_f <- function(df, yas){
-  
-  title = unique(with(df, paste(variable, sector, sep="_")))
+  unit_c <- paste(unique(df$unit), collapse = " and ")
+  title <- unique(with(df, paste(variable, sector, sep="_")))
+  title <- paste(title, unit_c, sep = "_")
   point <- filter(df, year == 2050)
   
   p = ggplot() +
@@ -57,6 +58,7 @@ lineplot_f <- function(df, yas){
   
   p
 }
+
 
 
 # CALO EMIS EXPO FEED FOOD FRTN GDPpc GDPval IMDR IMPO NETT  NQT OTHU XCPI XPRI XPRP 
@@ -152,6 +154,92 @@ pdf(file = "./Graphs/LAND_AREA_line_ha.pdf", width = 7, height = 7)
 LAND_AREA_lineplot_ha$plots
 dev.off()
 
+
+### Comparison calorie based indicators
+# Create df
+CALO <- filter(TOTAL2, variable %in% c("CALO"))
+xtabs(~model + unit, data = CALO)
+
+# compare index
+CALO_lineplot_i <- CALO %>%
+  group_by(variable, sector, unit) %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  do(plots = lineplot_f(., "Index")) 
+
+pdf(file = "./Graphs/CALO_line_i.pdf", width = 7, height = 7)
+CALO_lineplot_i$plots
+dev.off()
+
+### Comparison of XPRP
+# Create df
+XPRP <- filter(TOTAL2, variable %in% c("XPRP"))
+xtabs(~model + unit, data = XPRP)
+
+# compare index
+XPRP_lineplot_i <- XPRP %>%
+  group_by(variable, sector) %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  do(plots = lineplot_f(., "Index")) 
+
+pdf(file = "./Graphs/XPRP_line_i.pdf", width = 7, height = 7)
+XPRP_lineplot_i$plots
+dev.off()
+
+### Comparison of XFPI
+XFPI <- filter(TOTAL2, variable %in% c("XFPI"), unit != "Laspeyres index (2010=100)")
+xtabs(~model + unit, data = XFPI)
+
+# compare index
+XFPI_lineplot_i <- XFPI %>%
+  group_by(variable, sector) %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  do(plots = lineplot_f(., "Index")) 
+
+pdf(file = "./Graphs/XFPI_line_i.pdf", width = 7, height = 7)
+XFPI_lineplot_i$plots
+dev.off()
+
+### Comparison of XPRM
+XPRM <- filter(TOTAL2, variable %in% c("XPRM"))
+xtabs(~model + unit, data = XPRM)
+
+# compare index
+XPRM_lineplot_i <- XPRM %>%
+  group_by(variable, sector) %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  do(plots = lineplot_f(., "Index")) 
+
+pdf(file = "./Graphs/XPRM_line_i.pdf", width = 7, height = 7)
+XPRM_lineplot_i$plots
+dev.off()
+
+### Comparison of other food security indicators
+FS <- filter(TOTAL2, variable %in% c("PROT", "SHRFC", "GDPC", "SHRM", "IMDR", "WVSP")) 
+xtabs(~model + unit + variable, data = FS)
+
+# compare index
+FS_lineplot_i <- FS %>%
+  group_by(variable, sector) %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  do(plots = lineplot_f(., "Index")) 
+
+pdf(file = "./Graphs/FS_line_i.pdf", width = 7, height = 7)
+FS_lineplot_i$plots
+dev.off()
+
+
+# Check
+check <- filter(TOTAL2, variable %in% c("IMDR")) 
+xtabs(~model + unit + variable, data = FS)
+
+
+# Comparison of other food security indicators
+FS <- filter(TOTAL2, variable %in% c*"GDPC", "CALO",  "PROT", "SHRF", )
 # 
 # LAND_AREA_lineplot_WLD <- LAND_AREA_db %>%
 #   filter(FSregion == "WLD") %>%
@@ -204,29 +292,6 @@ YILD_PROD_AREA_lineplot_i <- YILD_PROD_AREA %>%
 pdf(file = "./Graphs/YILD_PROD_AREA_line_i.pdf", width = 7, height = 7)
 YILD_PROD_AREA_lineplot_i$plots
 dev.off()
-
-
-# Comparison FS indicators
-# Calorie consumption per capita per day
-CALO <- filter(TOTAL2, variable == "CALO" & unit == "kcal/cap/d" & sector == "TOT")
-xtabs(~model + unit, data = CALO)
-
-# compare index
-CALO_lineplot_i <- CALO %>%
-  group_by(variable, sector) %>%
-  select(-value) %>%
-  rename(value = index) %>%
-  do(plots = lineplot_f(., "Index")) 
-
-pdf(file = "./Graphs/CALO_line_i.pdf", width = 7, height = 7)
-CALO_lineplot_i$plots
-dev.off()
-
-
-
-
-
-
 
 
 

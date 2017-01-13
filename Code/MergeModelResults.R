@@ -14,8 +14,8 @@ lapply(BasePackages, library, character.only = TRUE)
 #lapply(AdditionalPackages, library, character.only = TRUE)
 
 ### SET WORKING DIRECTORY
-wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
-#wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
+#wdPath<-"C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios"
+wdPath<-"D:\\Dropbox\\FOODSECURE Scenarios"
 setwd(wdPath)
 
 ### R SETTINGS
