@@ -96,7 +96,7 @@ lineplot_hh_f <- function(df, yas){
 
 
 # Load data
-HH <- read.csv("Cache/MAGNETHH_ti4_st_2016-11-22.csv") %>%
+HH <- read.csv("Cache/MAGNETHH_t_st_2016-11-22.csv") %>%
   rename(sector = FSsector, region = FSregion) %>%
   select(-modelrun) %>%
   filter(unit != "mil USD") %>%
@@ -111,7 +111,7 @@ p_HH <- HH %>%
   group_by(variable, sector, unit) %>%
   do(plots = lineplot_f(., "value")) 
 
-pdf(file = "./Graphs/p_HH.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/p_HH_t.pdf", width = 7, height = 7)
 p_HH$plots
 dev.off()
 
@@ -120,7 +120,7 @@ p_HH2 <- HH %>%
   group_by(region, variable, sector, unit) %>%
   do(plots = lineplot_hh_f(., "value")) 
 
-pdf(file = "./Graphs/p_HH2.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/p_HH2_t.pdf", width = 7, height = 7)
 p_HH2$plots
 dev.off()
 
