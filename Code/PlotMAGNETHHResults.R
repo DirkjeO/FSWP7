@@ -46,6 +46,7 @@ lineplot_f <- function(df, yas){
   
   p = p + theme_classic() +
     theme(panel.border = element_blank(),
+          axis.text=element_text(size=8),
           axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "black"),
           axis.line.y = element_line(size = 0.5, linetype = "solid", colour = "black")) +
     scale_x_continuous(limits = c(2010,2050.1), breaks = seq(2010,2050,by=10),expand=c(0,0)) + # note that: Limits sets the limits for the axes (added 0.1) but always some space is added. Latter is controlled by expand
@@ -81,6 +82,7 @@ lineplot_hh_f <- function(df, yas){
   
   p = p + theme_classic() +
     theme(panel.border = element_blank(),
+          axis.text=element_text(size=8),
           axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "black"),
           axis.line.y = element_line(size = 0.5, linetype = "solid", colour = "black")) +
     scale_x_continuous(limits = c(2010,2050.1), breaks = seq(2010,2050,by=10),expand=c(0,0)) + # note that: Limits sets the limits for the axes (added 0.1) but always some space is added. Latter is controlled by expand
@@ -93,17 +95,45 @@ lineplot_hh_f <- function(df, yas){
   p
 }
 
-
-
+### PLOT MAGNET STANDARD RESULTS
 # Load data
-HH <- read.csv("Cache/MAGNETHH_t_st_2016-11-22.csv") %>%
+MAGNET <- read.csv("Cache/MAGNET_ti3_st_2017-02-08.csv") %>%
+  rename(sector = FSsector, region = FSregion) %>%
+  select(-Modelrun) %>%
+  filter(unit != "mil USD") %>%
+  mutate(unit = ifelse(variable %in% c("NQSECT", "NQT"), tolower(unit), unit)) # lowercase units
+
+# Remove _M sectors that do not include primary processing
+Xsector <- unique(MAGNET$sector[grep("_M", MAGNET$sector)])
+MAGNET <- filter(MAGNET, !(sector %in% Xsector))
+
+# Remove current values and some nutrient variables
+MAGNET <- filter(MAGNET, !(unit %in% c("M USD", "prot", "quant", "cal", "carb", "fat")))
+
+# Remove variables that are not needed for the analysis
+MAGNET <- filter(MAGNET, !(variable %in% c("PCONS")))
+
+# Remove inf and na variables
+MAGNET <- filter(MAGNET, !is.infinite(value)) %>%
+          filter(!is.na(value))
+
+# Line plot: comparing acros countries
+p_MAGNET <- MAGNET %>%
+  group_by(variable, sector, unit) %>%
+  do(plots = lineplot_f(., "value")) 
+
+pdf(file = "./Graphs/p_MAGNET_ti3.pdf", width = 10, height = 7)
+p_MAGNET$plots
+dev.off()
+
+### PLOT HH DATA
+# Load HH data
+HH <- read.csv("Cache/MAGNETHH_ti3_st_2017-02-08.csv") %>%
   rename(sector = FSsector, region = FSregion) %>%
   select(-modelrun) %>%
   filter(unit != "mil USD") %>%
   mutate(unit = ifelse(variable %in% c("NQSECT", "NQT"), tolower(unit), unit)) # lowercase units
 
-
-xtabs(~ variable + unit, data = GDP_POP_YEXO)
 
 # Line plot: comparing acros countries
 p_HH <- HH %>%
@@ -111,7 +141,7 @@ p_HH <- HH %>%
   group_by(variable, sector, unit) %>%
   do(plots = lineplot_f(., "value")) 
 
-pdf(file = "./Graphs/p_HH_t.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/p_HH_ti3.pdf", width = 7, height = 7)
 p_HH$plots
 dev.off()
 
@@ -120,7 +150,7 @@ p_HH2 <- HH %>%
   group_by(region, variable, sector, unit) %>%
   do(plots = lineplot_hh_f(., "value")) 
 
-pdf(file = "./Graphs/p_HH2_t.pdf", width = 7, height = 7)
+pdf(file = "./Graphs/p_HH2_ti3.pdf", width = 7, height = 7)
 p_HH2$plots
 dev.off()
 
