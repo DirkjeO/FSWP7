@@ -632,7 +632,7 @@ rm(VPA)
 # AC2
 ### GDP per capita
 AC[["GDPC"]] <- MAGNET1_2 %>%
-          filter(variable %in% c("GDPT", "POPT") & unit %in% c("M USD", "Mpers")) %>% 
+          filter(variable %in% c("GDPT", "POPT") & unit %in% c("M USD 2007", "Mpers")) %>% 
           select(-unit) %>%
           group_by(scenario, FSregion, FSsector, year) %>%
           summarize(value = value[variable == "GDPT"]/value[variable == "POPT"]) %>%
