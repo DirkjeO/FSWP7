@@ -76,7 +76,7 @@ lineplot_f <- function(df, yas){
 # dev.off()
 
 # Load data
-TOTAL2 <- read.csv("Results/TOTAL_2016-12-21.csv")
+TOTAL2 <- read.csv("Results/TOTAL_2017-02-16.csv")
 
 
 # Comparison GDP, POP and YEXO

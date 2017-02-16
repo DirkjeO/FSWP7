@@ -69,7 +69,7 @@ xtabs(~IMAGE$variable + IMAGE$sector)
 #   spread(scenario, value)
 
 # MAGNET
-MAGNET <- read.csv("./Results/MAGNET_t_st_2016-12-16.csv") %>%
+MAGNET <- read.csv("./Results/MAGNET_t_st_2017-02-15.csv") %>%
             rename(sector = FSsector, region = FSregion) %>%
             select(-Modelrun) %>%
             filter(unit != "mil USD") %>%
