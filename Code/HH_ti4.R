@@ -212,7 +212,6 @@ MAGNETHH2 <- bind_rows(MAGNETHH2_raw) %>%
 MAGNETHH1 <- bind_rows(
   subtot_f(MAGNETHH1, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_cer),
   subtot_f(MAGNETHH1, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_sec),
-  subtot_f(MAGNETHH1, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_lsp),
   subtot_f(MAGNETHH1, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_lspfsh),
   subtot_f(MAGNETHH1, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_sec_M),
   subtot_f(MAGNETHH1, c("scenario", "year", "FSsector", "REG", "variable", "HHLD", "unit"), "value", map_tot_M),
