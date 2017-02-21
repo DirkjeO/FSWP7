@@ -1,7 +1,7 @@
 # Function to create bandwidht plot excluding historical data
 
 bwplot_f <- function(df, yas){
-  
+   
   myear <-function(x) {
     x <-x[order(x$year), ]
     y <-x[-c(1, 2, nrow(x) -1, nrow(x)), ]
@@ -125,7 +125,7 @@ bwplot2_f <- function(df, hist, yas){
     point$year[point$scenario == scenarios[i]] <- k
   } 
   
-  ymin <- min(hist$year)
+  ymin <- (round(min(hist$year)/10)*10)
   
   # Plot the figure
   p = ggplot() +
@@ -146,6 +146,7 @@ bwplot2_f <- function(df, hist, yas){
     scale_shape_manual(values=c(8, 15), name = "") +
     ylab(yas) + xlab("") +
     facet_wrap(~region, scale = "free")
+    #facet_wrap(~region)
   
   p = p +ggtitle(title)
   
