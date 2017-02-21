@@ -26,8 +26,8 @@ p_load("ggradar", "cowplot", "countrycode")
 root <- find_root(is_rstudio_project)
 
 ### SET DATAPATH
-#dataPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results" 
-dataPath <- "C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios\\Results"
+dataPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results" 
+#dataPath <- "C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios\\Results"
 
 # SOURCE
 source(file.path(root, "Code/plot_f2.r"))
@@ -118,7 +118,7 @@ FNS_glob_CALO_TOT <- FNS_glob %>%
 # Rescale PROT_LSP
 FNS_glob_PROT_LSP <- FNS_glob %>%
   filter(FNS == "PROT_LSP") %>%
-  mutate(scale = ((value - 20)/(50-20))*100) %>%
+  mutate(scale = ((50-value)/(50-20))*100) %>%
   filter(year == 2050)
 
 # CHECK IF WE CAN SHOW FOOD PRICES
@@ -158,7 +158,9 @@ FNS_glob_av <- FNS_glob_scale %>%
   select(group = scenario, FNS, scale) %>%
   spread(FNS, scale) 
 
-p1 = ggradar(FNS_glob_av, axis.label.size = 3) + labs(title = "Average")
+p_av <- ggradar(FNS_glob_av, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                 group.point.size = 4) + labs(title = "Average")
+
 
 # Magnet
 FNS_glob_ma <- FNS_glob_scale %>%
@@ -166,7 +168,8 @@ FNS_glob_ma <- FNS_glob_scale %>%
   select(group = scenario, FNS, scale) %>%
   spread(FNS, scale)
 
-p2 = ggradar(FNS_glob_ma, axis.label.size = 3) + labs(title = "MAGNET")
+p_MAGNET <- ggradar(FNS_glob_ma, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                    group.point.size = 4) + labs(title = "MAGNET")
 
 # Globiom
 FNS_glob_gl <- FNS_glob_scale %>%
@@ -174,10 +177,13 @@ FNS_glob_gl <- FNS_glob_scale %>%
   select(scenario, FNS, scale) %>%
   spread(FNS, scale)
 
-p3 = ggradar(FNS_glob_gl, axis.label.size = 3) + labs(title = "GLOBIOM")
+p_GLOBIOM = ggradar(FNS_glob_gl, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                    group.point.size = 4) + labs(title = "GLOBIOM")
 
 # Combine plots 
-Fig_radar <- plot_grid(p1, p2, p3)
+Fig_radar_model <- plot_grid(p_av, p_MAGNET, p_GLOBIOM)
+Fig_radar_model
+ggsave("Graphs/between_model1.png", width = 12, height = 8)
 
 # Global per scenario
 # TLTL
@@ -186,7 +192,8 @@ FNS_glob_TLTL <- FNS_glob_scale %>%
   select(model, FNS, scale) %>%
   spread(FNS, scale)
 
-p_TLTL = ggradar(FNS_glob_TLTL, axis.label.size = 3) + labs(title = "TLTL")
+p_TLTL = ggradar(FNS_glob_TLTL, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                 group.point.size = 4) + labs(title = "TLTL")
 
 # ECO
 FNS_glob_ECO <- FNS_glob_scale %>%
@@ -194,7 +201,8 @@ FNS_glob_ECO <- FNS_glob_scale %>%
   select(model, FNS, scale) %>%
   spread(FNS, scale)
 
-p_ECO = ggradar(FNS_glob_ECO, axis.label.size = 3) + labs(title = "ECO")
+p_ECO = ggradar(FNS_glob_ECO, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                group.point.size = 4) + labs(title = "ECO")
 
 # ONEPW
 FNS_glob_ONEPW <- FNS_glob_scale %>%
@@ -202,7 +210,8 @@ FNS_glob_ONEPW <- FNS_glob_scale %>%
   select(model, FNS, scale) %>%
   spread(FNS, scale)
 
-p_ONEPW = ggradar(FNS_glob_ONEPW, axis.label.size = 3) + labs(title = "ONEPW")
+p_ONEPW = ggradar(FNS_glob_ONEPW, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                  group.point.size = 4) + labs(title = "ONEPW")
 
 # FFANF
 FNS_glob_FFANF <- FNS_glob_scale %>%
@@ -210,10 +219,12 @@ FNS_glob_FFANF <- FNS_glob_scale %>%
   select(model, FNS, scale) %>%
   spread(FNS, scale)
 
-p_FFANF = ggradar(FNS_glob_FFANF, axis.label.size = 3) + labs(title = "FFANF")
+p_FFANF = ggradar(FNS_glob_FFANF, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                  group.point.size = 4) + labs(title = "FFANF")
 
 # Combine plots 
 Fig_radar_scen <- plot_grid(p_TLTL, p_FFANF, p_ONEPW, p_ECO)
+ggsave("Graphs/between_scenario1.png", width = 12, height = 8)
 
 ### LOAD COUNTRY MAPPINGS
 
