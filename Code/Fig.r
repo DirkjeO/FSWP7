@@ -11,7 +11,7 @@ if(!require(pacman)) install.packages("pacman")
 # We load plyr first as we used most functions from dplyr
 p_load(plyr) 
 # Key packages
-p_load("tidyverse", "readxl", "stringr", "scales", "RColorBrewer", "rprojroot")
+p_load("tidyverse", "readxl", "stringr", "scales", "RColorBrewer", "rprojroot","extrafont")
 # Spatial packages
 #p_load("rgdal", "ggmap", "raster", "rasterVis", "rgeos", "sp", "mapproj", "maptools", "proj4", "gdalUtils")
 
@@ -26,8 +26,7 @@ p_load("ggradar", "cowplot", "countrycode")
 root <- find_root(is_rstudio_project)
 
 ### SET DATAPATH
-dataPath <- "D:\\Dropbox\\FOODSECURE Scenarios\\Results" 
-#dataPath <- "C:\\Users\\vandijkm\\Dropbox\\FOODSECURE Scenarios\\Results"
+source(file.path(root, "Code/get_dataPath.r"))
 
 # SOURCE
 source(file.path(root, "Code/plot_f2.r"))
@@ -36,6 +35,10 @@ source(file.path(root, "Code/plot_f2.r"))
 options(scipen=999) # surpress scientific notation
 options("stringsAsFactors"=FALSE) # ensures that characterdata that is loaded (e.g. csv) is not turned into factors
 options(digits=4)
+
+# Load fonts
+# font_import()
+# loadfonts()
 
 ### PROCESS DATA CUBE
 # Load data
@@ -96,75 +99,154 @@ FNS_db <- bind_rows(
 )
     
   
-### GLOBAL PICTURE: RADAR GRAPHS
-# Global database
-FNS_glob <- FNS_db %>%
+### RADAR GRAPHS: PREPARATION
+FNS_radar <- FNS_db %>%
+  mutate(value = ifelse(FNS == "CALO_CER", 100-value, value)) %>%
   ungroup() %>%
-  filter(region == "WLD", year %in% c(2010, 2050)) %>%
-  group_by(FNS, model) %>%
+  filter(year %in% c(2010, 2050)) %>%
+  group_by(FNS, model, region) %>%
   mutate(min_val = min(value),
          min_index = min(index),
          max_val = max(value),
          max_index = max(index)) %>%
-  select(-region) %>%
-  ungroup()
+  ungroup() 
 
 # Rescale CALO_TOT
-FNS_glob_CALO_TOT <- FNS_glob %>%
-  filter(FNS == "CALO_TOT") %>%
-  mutate(scale = ((value - 2800)/(3400-2800))*100) %>%
+# Set maximum to EU level
+# CALO_TOT_max <- filter(FNS_db, year == 2050, region == "EU", FNS == "CALO_TOT")
+CALO_TOT_max <- 3400
+
+FNS_CALO_TOT <- FNS_db %>%
+  filter(FNS == "CALO_TOT", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(value),
+         max_val = max(value)) %>%
+  ungroup() %>%
+  mutate(scale = ((value - min_val)/(CALO_TOT_max-min_val))*100) %>%
   filter(year == 2050)
 
-# Rescale PROT_LSP
-FNS_glob_PROT_LSP <- FNS_glob %>%
-  filter(FNS == "PROT_LSP") %>%
-  mutate(scale = ((50-value)/(50-20))*100) %>%
+# Rescale PROT_LSP (reverse scaling as this is a 'bad')
+PROT_LSP_max <- 50
+PROT_LSP_min <- 9
+
+FNS_PROT_LSP <- FNS_db %>%
+  filter(FNS == "PROT_LSP", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(value),
+         max_val = max(value)) %>%
+  ungroup() %>%
+  mutate(scale = ((PROT_LSP_max-value)/(PROT_LSP_max-PROT_LSP_min))*100) %>%
   filter(year == 2050)
+
 
 # CHECK IF WE CAN SHOW FOOD PRICES
-# Rescale XFPI_AGR (negative scaling as this is a 'bad')
-FNS_glob_XFPI_AGR <- FNS_glob %>%
-  filter(FNS == "XFPI_AGR") %>%
-  mutate(scale = ((max_index-index)/(max_index-min_index))*100) %>%
+# Rescale XFPI_AGR (reverse scaling as this is a 'bad')
+# Outside (0,1) interval in two cases where growth rates are outside (50,200)% 
+FNS_XFPI_AGR <- FNS_db %>%
+  filter(FNS == "XFPI_AGR", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(index),
+         max_val = max(index)) %>%
+  ungroup() %>%
+  mutate(scale = 50*((log(index/100)/log(2))+1)) %>%
   filter(year == 2050)
 
+
 # Rescale GDPC_TOT
-FNS_glob_GDPC_TOT <- FNS_glob %>%
-  filter(FNS == "GDPC_TOT") %>%
+FNS_GDPC_TOT <- FNS_db %>%
+  filter(FNS == "GDPC_TOT", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(index),
+         max_val = max(index)) %>%
+  ungroup() %>%
   mutate(scale = ((value - min_val)/(max_val-min_val))*100) %>%
   filter(year == 2050)
 
+
 # CALO_CER 
-FNS_glob_CALO_CER <- FNS_glob %>%
-  filter(FNS %in% c("CALO_CER")) %>%
+FNS_CALO_CER <- FNS_db %>%
+  filter(FNS == "CALO_CER", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(value),
+         max_val = max(value)) %>%
+  ungroup() %>%
   mutate(scale = value) %>%
   filter(year == 2050)
 
-# IMDR_CER (negative scaling as this is a 'bad')
-FNS_glob_IMDR_CER <- FNS_glob %>%
-  filter(FNS %in% c("IMDR_CER")) %>%
+# IMDR_CER (reverse scaling as this is a 'bad')
+FNS_IMDR_CER <- FNS_db %>%
+  filter(FNS == "IMDR_CER", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(value),
+         max_val = max(value)) %>%
+  ungroup() %>%
   mutate(scale = ((max_val-value)/(max_val-min_val))*100) %>%
   filter(year == 2050)
 
-
 # Combine scaled variables
-FNS_glob_scale <- bind_rows(FNS_glob_CALO_CER, FNS_glob_CALO_TOT, FNS_glob_GDPC_TOT, FNS_glob_IMDR_CER, FNS_glob_PROT_LSP, FNS_glob_XFPI_AGR) %>%
-  mutate(scale = scale/100) 
+FNS_radar <- bind_rows(FNS_CALO_CER, FNS_CALO_TOT, FNS_GDPC_TOT, FNS_IMDR_CER, FNS_PROT_LSP, FNS_XFPI_AGR) %>%
+  mutate(scale = scale/100,
+         scale = ifelse(is.na(scale), 0, scale),
+         scale = ifelse(scale < 0, 0, scale),
+         scale = ifelse(scale >1, 1, scale)) %>%
+  mutate(FNS2 = recode(FNS, "XFPI_AGR" = "Food affordibility",
+                       "CALO_CER" = "Share of nutrious food",
+                       "CALO_TOT" = "Calorie availability",
+                       "GDPC_TOT" = "Income per capita growth",
+                       "IMDR_CER" = "Self-sufficiency in cereals",
+                       "PROT_LSP" = "Supply of protein of animal origin"))
 
 
-# Global per model
-FNS_glob_av <- FNS_glob_scale %>%
-  filter(model == "Average") %>%
+
+
+### GLOBAL PLOTS BY SCENARIO
+# Function to prepare radar plots per scenario
+radar_scen_f <- function(reg){
+  df <- subset(FNS_radar, region == reg & model != "Average") 
+  
+  # TLTL
+  TLTL_df <- filter(df, scenario == "TLTL") %>% select(group = model, FNS2, scale) %>% spread(FNS2, scale) 
+  p_TLTL = ggradar(TLTL_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                   group.point.size = 4) + labs(title = "TLTL") 
+
+  # ECO
+  ECO_df <- filter(df, scenario == "ECO") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
+  p_ECO = ggradar(ECO_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                  group.point.size = 4) + labs(title = "ECO")
+
+  # ONEPW
+  ONEPW_df <- filter(df, scenario == "ONEPW") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
+  p_ONEPW = ggradar(ONEPW_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                    group.point.size = 4) + labs(title = "ONEPW")
+
+  # FFANF
+  FFANF_df <- filter(df, scenario == "FFANF") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
+  p_FFANF = ggradar(FFANF_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+                    group.point.size = 4) + labs(title = "FFANF")
+  
+  plot_grid(p_TLTL, p_FFANF, p_ONEPW, p_ECO) + labs(title = reg)
+  ggsave(paste("Graphs/p_radar_scen_" ,reg, ".png", sep =""), width = 12, height = 8)
+}
+
+radar_scen_f("WLD")
+radar_scen_f("SSA")
+radar_scen_f("SASIA")
+radar_scen_f("EASIA")
+radar_scen_f("LAC")
+
+
+### GLOBAL RADAR PLOTS BY MODEL
+FNS_glob_av <- FNS_radar %>%
+  filter(model == "Average", region == "WLD", FNS != "IMDR_CER") %>%
   select(group = scenario, FNS, scale) %>%
   spread(FNS, scale) 
 
 p_av <- ggradar(FNS_glob_av, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                 group.point.size = 4) + labs(title = "Average")
-
+                group.point.size = 4) + labs(title = "Average")
 
 # Magnet
-FNS_glob_ma <- FNS_glob_scale %>%
-  filter(model == "MAGNET") %>%
+FNS_glob_ma <- FNS_radar %>%
+  filter(model == "MAGNET", region == "WLD", FNS != "IMDR_CER") %>%
   select(group = scenario, FNS, scale) %>%
   spread(FNS, scale)
 
@@ -172,8 +254,8 @@ p_MAGNET <- ggradar(FNS_glob_ma, axis.label.size = 3, grid.label.size = 4, legen
                     group.point.size = 4) + labs(title = "MAGNET")
 
 # Globiom
-FNS_glob_gl <- FNS_glob_scale %>%
-  filter(model == "GLOBIOM") %>%
+FNS_glob_gl <- FNS_radar %>%
+  filter(model == "GLOBIOM", region == "WLD", FNS != "IMDR_CER") %>%
   select(scenario, FNS, scale) %>%
   spread(FNS, scale)
 
@@ -183,48 +265,8 @@ p_GLOBIOM = ggradar(FNS_glob_gl, axis.label.size = 3, grid.label.size = 4, legen
 # Combine plots 
 Fig_radar_model <- plot_grid(p_av, p_MAGNET, p_GLOBIOM)
 Fig_radar_model
-ggsave("Graphs/between_model1.png", width = 12, height = 8)
 
-# Global per scenario
-# TLTL
-FNS_glob_TLTL <- FNS_glob_scale %>%
-  filter(scenario == "TLTL") %>%
-  select(model, FNS, scale) %>%
-  spread(FNS, scale)
 
-p_TLTL = ggradar(FNS_glob_TLTL, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                 group.point.size = 4) + labs(title = "TLTL")
-
-# ECO
-FNS_glob_ECO <- FNS_glob_scale %>%
-  filter(scenario == "ECO") %>%
-  select(model, FNS, scale) %>%
-  spread(FNS, scale)
-
-p_ECO = ggradar(FNS_glob_ECO, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                group.point.size = 4) + labs(title = "ECO")
-
-# ONEPW
-FNS_glob_ONEPW <- FNS_glob_scale %>%
-  filter(scenario == "ONEPW") %>%
-  select(model, FNS, scale) %>%
-  spread(FNS, scale)
-
-p_ONEPW = ggradar(FNS_glob_ONEPW, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                  group.point.size = 4) + labs(title = "ONEPW")
-
-# FFANF
-FNS_glob_FFANF <- FNS_glob_scale %>%
-  filter(scenario == "FFANF") %>%
-  select(model, FNS, scale) %>%
-  spread(FNS, scale)
-
-p_FFANF = ggradar(FNS_glob_FFANF, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                  group.point.size = 4) + labs(title = "FFANF")
-
-# Combine plots 
-Fig_radar_scen <- plot_grid(p_TLTL, p_FFANF, p_ONEPW, p_ECO)
-ggsave("Graphs/between_scenario1.png", width = 12, height = 8)
 
 ### LOAD COUNTRY MAPPINGS
 
