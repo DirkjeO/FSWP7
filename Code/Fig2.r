@@ -55,7 +55,9 @@ FNS_db <- TOTAL %>%
            (variable == "PROT" & unit ==  "g prt/cap/d" & sector == "LSP") |
            (variable == "CALO" & unit ==  "g prt/cap/d" & sector == "LSP") |
            (variable == "CALO" & unit ==  "kcal/cap/d" & sector == "TOT") |
-           (variable == "CALO" & unit ==  "%" & sector == "CER")) %>%
+           (variable == "CALO" & unit ==  "%" & sector == "CER") |
+           (variable == "SHRFC" & unit ==  "%" & sector == "FOOD") |
+           (variable == "CALO" & unit ==  "%" & sector == "VFN")) %>%
   mutate(variable = ifelse((model == "GLOBIOM" & variable == "CALO" & unit == "g prt/cap/d"), "PROT", variable),
          FNS = paste(variable, sector, sep = "_")) %>%
   ungroup()
@@ -98,18 +100,35 @@ FNS_db <- bind_rows(
     summarize_at(vars(value, index), mean)
 )
 
+# Change MAGNET into MAGNET-IMAGE
+FNS_db <- mutate(FNS_db, model = ifelse(model == "MAGNET", "MAGNET-IMAGE", model))
 
 ### RADAR GRAPHS: PREPARATION
 FNS_radar <- FNS_db %>%
   mutate(value = ifelse(FNS == "CALO_CER", 100-value, value)) %>%
   ungroup() %>%
-  filter(year %in% c(2010, 2050)) %>%
-  group_by(FNS, model, region) %>%
+  filter(year %in% c(2010, 2050))
+
+
+# Rescale CALO_VFN
+FNS_CALO_VFN <- FNS_radar %>%
+  filter(FNS == "CALO_VFN", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
   mutate(min_val = min(value),
-         min_index = min(index),
-         max_val = max(value),
-         max_index = max(index)) %>%
-  ungroup() 
+         max_val = max(value)) %>%
+  ungroup() %>%
+  mutate(scale = ((value - min_val)/(max_val-min_val))*100) %>%
+  filter(year == 2050)
+
+# Rescale SHRFC_FOOD
+FNS_SHRFC_FOOD <- FNS_radar %>%
+  filter(FNS == "SHRFC_FOOD", year %in% c(2010, 2050), !(region %in% c("EU", "ROW"))) %>%
+  group_by(model, region) %>%
+  mutate(min_val = min(value),
+         max_val = max(value)) %>%
+  ungroup() %>%
+  mutate(scale = ((value - min_val)/(max_val-min_val))*100) %>%
+  filter(year == 2050)
 
 # Rescale CALO_TOT
 FNS_CALO_TOT <- FNS_radar %>%
@@ -176,95 +195,125 @@ FNS_IMDR_CER <- FNS_radar %>%
   filter(year == 2050)
 
 # Combine scaled variables
-FNS_radar <- bind_rows(FNS_CALO_CER, FNS_CALO_TOT, FNS_GDPC_TOT, FNS_IMDR_CER, FNS_PROT_LSP, FNS_XFPI_AGR) %>%
+FNS_radar <- bind_rows(FNS_CALO_CER, FNS_CALO_TOT, FNS_GDPC_TOT, FNS_IMDR_CER,
+                       FNS_PROT_LSP, FNS_XFPI_AGR, FNS_CALO_VFN) %>%
   mutate(scale = scale/100,
          scale = ifelse(is.na(scale), 0, scale),
          scale = ifelse(scale < 0, 0, scale),
          scale = ifelse(scale >1, 1, scale)) %>%
-  mutate(FNS2 = recode(FNS, "XFPI_AGR" = "Food affordability",
-                       "CALO_CER" = "Share of nutritious food",
-                       "CALO_TOT" = "Calorie availability",
-                       "GDPC_TOT" = "Income per capita growth",
-                       "IMDR_CER" = "Self-sufficiency in cereals",
-                       "PROT_LSP" = "Reduction in protein of animal origin"))
+  mutate(FNS2 = recode(FNS, "XFPI_AGR" = "AC: Food affordability",
+                       "CALO_CER" = "AV: Share of nutritious food",
+                       "CALO_TOT" = "AV: Calorie availability",
+                       "GDPC_TOT" = "AC: Income per\n capita growth",
+                       "IMDR_CER" = "ST: Self-sufficiency\n in cereals",
+                       "PROT_LSP" = "AV: Reduction in protein of animal origin",
+                       #"SHRFC_FOOD" = "AC: Average share of food expenditures\n in total household expenditures ",
+                       "CALO_VFN" = "UT: Share of calories from\n fruit and vegetables"))
 
 
 ### GLOBAL RADAR PLOTS BY MODEL
-FNS_glob_av <- FNS_radar %>%
-  filter(model == "Average", region == "WLD", FNS != "IMDR_CER") %>%
-  select(group = scenario, FNS2, scale) %>%
-  spread(FNS2, scale) 
+# Function to prepare radar plots per scenario
+radar_model_reg_f <- function(mod,reg){
+  df <- FNS_radar %>%
+    filter(model == mod, region == reg, FNS != "IMDR_CER") %>%
+    select(group = scenario, FNS2, scale) %>%
+    spread(FNS2, scale)
+  
+  p <- ggradar(df, font.radar = "Arial", axis.label.size = 3, 
+                  grid.label.size = 4, legend.text.size = 7, group.point.size = 4, 
+                  values.radar = c("0", "50", "100")) +
+    scale_colour_manual(values = c("#19BF34", "#15C1DB", "#CF4343", "#922BC2")) +
+    theme(legend.position = "bottom")
+  p
+}
 
-ggradar2(FNS_glob_av, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-        group.point.size = 4) +
-        labs(title = "Average") +
+Fig_radar_wld <- radar_model_reg_f("Average", "WLD")
+radar_model_reg_f("Average", "LAC")
+radar_model_reg_f("Average", "EASIA")
+radar_model_reg_f("Average", "SSA")
+radar_model_reg_f("Average", "SASIA")
+
+
+
+FNS_glob_av <- FNS_radar %>%
+  filter(model == "Average", region == "WLD") %>% #, FNS != "IMDR_CER") %>%
+  select(group = scenario, FNS2, scale) %>%
+  spread(FNS2, scale)
+
+P_AV <- ggradar(FNS_glob_av, font.radar = "Arial", axis.label.size = 3, 
+                grid.label.size = 4, legend.text.size = 7, group.point.size = 4, 
+                values.radar = c("0", "50", "100")) +
         scale_colour_manual(values = c("#19BF34", "#15C1DB", "#CF4343", "#922BC2")) +
         theme(legend.position = "bottom")
 
-
-
-ggsave("Graphs/p_radar_av.png", width = 16, height = 8) 
+P_AV
 
 # Magnet
 FNS_glob_ma <- FNS_radar %>%
-  filter(model == "MAGNET", region == "WLD", FNS != "IMDR_CER") %>%
-  select(group = scenario, FNS, scale) %>%
-  spread(FNS, scale)
+  filter(model == "MAGNET-IMAGE", region == "WLD") %>%
+  select(group = scenario, FNS2, scale) %>%
+  spread(FNS2, scale)
 
-p_MAGNET <- ggradar(FNS_glob_ma, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                    group.point.size = 4) + labs(title = "MAGNET")
+p_MAGNET <- ggradar(FNS_glob_ma, font.radar = "Arial", axis.label.size = 3, 
+                    grid.label.size = 4, legend.text.size = 7, group.point.size = 4, 
+                    values.radar = c("0", "50", "100")) +
+  scale_colour_manual(values = c("#19BF34", "#15C1DB", "#CF4343", "#922BC2")) +
+  theme(legend.position = "bottom") +
+  labs(title = "MAGNET-IMAGE")
+
 
 # Globiom
 FNS_glob_gl <- FNS_radar %>%
-  filter(model == "GLOBIOM", region == "WLD", FNS != "IMDR_CER") %>%
-  select(scenario, FNS, scale) %>%
-  spread(FNS, scale)
+  filter(model == "GLOBIOM", region == "WLD") %>%
+  select(scenario, FNS2, scale) %>%
+  spread(FNS2, scale)
 
-p_GLOBIOM = ggradar(FNS_glob_gl, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                    group.point.size = 4) + labs(title = "GLOBIOM")
+p_GLOBIOM = ggradar(FNS_glob_gl, font.radar = "Arial", axis.label.size = 3, 
+                    grid.label.size = 4, legend.text.size = 7, group.point.size = 4, 
+                    values.radar = c("0", "50", "100")) +
+  scale_colour_manual(values = c("#19BF34", "#15C1DB", "#CF4343", "#922BC2")) +
+  theme(legend.position = "bottom") +
+  labs(title = "GLOBIOM")
 
 # Combine plots 
-Fig_radar_model <- plot_grid(p_av, p_MAGNET, p_GLOBIOM)
-Fig_radar_model
+Fig_radar_model <- plot_grid(p_MAGNET, p_GLOBIOM)
 
-
-### GLOBAL PLOTS BY SCENARIO
-# Function to prepare radar plots per scenario
-radar_scen_f <- function(reg){
-  df <- subset(FNS_radar, region == reg & model != "Average") 
-  
-  # TLTL
-  TLTL_df <- filter(df, scenario == "TLTL") %>% select(group = model, FNS2, scale) %>% spread(FNS2, scale) 
-  p_TLTL = ggradar(TLTL_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                   group.point.size = 4) + labs(title = "TLTL") 
-  
-  # ECO
-  ECO_df <- filter(df, scenario == "ECO") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
-  p_ECO = ggradar(ECO_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                  group.point.size = 4) + labs(title = "ECO")
-  
-  # ONEPW
-  ONEPW_df <- filter(df, scenario == "ONEPW") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
-  p_ONEPW = ggradar(ONEPW_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                    group.point.size = 4) + labs(title = "ONEPW")
-  
-  # FFANF
-  FFANF_df <- filter(df, scenario == "FFANF") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
-  p_FFANF = ggradar(FFANF_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
-                    group.point.size = 4) + labs(title = "FFANF")
-  
-  plot_grid(p_TLTL, p_FFANF, p_ONEPW, p_ECO) + labs(title = reg)
-  ggsave(paste("Graphs/p_radar2_scen_" ,reg, ".png", sep =""), width = 14, height = 8)
-}
-
-radar_scen_f("WLD")
-radar_scen_f("SSA")
-radar_scen_f("SASIA")
-radar_scen_f("EASIA")
-radar_scen_f("LAC")
-
-
-
+# 
+# 
+# ### GLOBAL PLOTS BY SCENARIO
+# # Function to prepare radar plots per scenario
+# radar_scen_f <- function(reg){
+#   df <- subset(FNS_radar, region == reg & model != "Average") 
+#   
+#   # TLTL
+#   TLTL_df <- filter(df, scenario == "TLTL") %>% select(group = model, FNS2, scale) %>% spread(FNS2, scale) 
+#   p_TLTL = ggradar(TLTL_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+#                    group.point.size = 4) + labs(title = "TLTL") 
+#   
+#   # ECO
+#   ECO_df <- filter(df, scenario == "ECO") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
+#   p_ECO = ggradar(ECO_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+#                   group.point.size = 4) + labs(title = "ECO")
+#   
+#   # ONEPW
+#   ONEPW_df <- filter(df, scenario == "ONEPW") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
+#   p_ONEPW = ggradar(ONEPW_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+#                     group.point.size = 4) + labs(title = "ONEPW")
+#   
+#   # FFANF
+#   FFANF_df <- filter(df, scenario == "FFANF") %>%  select(group = model, FNS2, scale) %>% spread(FNS2, scale)
+#   p_FFANF = ggradar(FFANF_df, axis.label.size = 3, grid.label.size = 4, legend.text.size = 7,
+#                     group.point.size = 4) + labs(title = "FFANF")
+#   
+#   plot_grid(p_TLTL, p_FFANF, p_ONEPW, p_ECO) + labs(title = reg)
+#   ggsave(paste("Graphs/p_radar2_scen_" ,reg, ".png", sep =""), width = 14, height = 8)
+# }
+# 
+# radar_scen_f("WLD")
+# radar_scen_f("SSA")
+# radar_scen_f("SASIA")
+# radar_scen_f("EASIA")
+# radar_scen_f("LAC")
 
 
 ### LOAD COUNTRY MAPPINGS
@@ -333,7 +382,7 @@ hist_cal <- bind_rows(hist_cal_r, hist_cal_w) %>%
   left_join(scen, .) %>%
   #filter(year <=2010) %>%
   dplyr::rename(scenario = Scenario, region = Region) %>%
-  filter(year >= 1990, !(region %in% c("ROW", "EU")))
+  filter(year >= 1990, year <= 2010, !(region %in% c("ROW", "EU", "MENA")))
 
 hist_cal_base <- filter(hist_cal, year == 2010) %>%
   dplyr::rename(Base2010 = value) %>%
@@ -347,28 +396,34 @@ CALO_db <- FNS_db %>%
 CALO_db <- CALO_db %>%
   left_join(., hist_cal_base) %>%
   mutate(value = Base2010*index/100) %>%
-  filter(!(region %in% c("ROW", "EU")))
+  filter(!(region %in% c("ROW", "EU", "MENA")))
 
 # Draw plot for world
-#CALO_wld <- filter(CALO_db, region == "WLD")
-#hist_cal_wld <- filter(hist_cal, region == "WLD")
-Fig_CALO <- bwplot2_f(CALO_db, hist_cal, "kcal/cap/d")
+Fig_CALO_w <- bwplot4_f(filter(CALO_db, region == "WLD"), 
+                        filter(hist_cal, region == "WLD"), "kcal/cap/d", "Calorie availabilty") 
+
+# Draw plot for regions
+Fig_CALO_r <- bwplot2_f(filter(CALO_db, region != "WLD"), 
+                      filter(hist_cal, region != "WLD"), "kcal/cap/d") 
+
 
 ### XFPI 
 # Historical data
 # NB Base year = 2010 so no need to rebase our series. Only Available for the whole world
 hist_price_wld <- read_csv(file.path(root, "Data/hist_agr_price.csv")) %>%
   left_join(.,scen) %>%
-  dplyr::rename(scenario = Scenario, region = Region) 
+  dplyr::rename(scenario = Scenario, region = Region) %>%
+  filter(year <= 2010)
 
 # Database
 XFPI_db <- FNS_db %>% 
   filter(FNS == "XFPI_AGR") %>%
+  select(-value) %>%
   dplyr::rename(value = index)
 
 # Draw plot for world
 XFPI_wld <- filter(XFPI_db, region == "WLD") 
-Fig_XFPI <- bwplot2_f(XFPI_wld, hist_price_wld, "Index (2010 = 100)")
+Fig_XFPI_w <- bwplot4_f(XFPI_wld, hist_price_wld, "Index (2010 = 100)", "Food prices")
 
 ### PROT
 # Load historical data
@@ -380,7 +435,7 @@ hist_prot <- FAO_FS_f("V_1.5", 2011) %>%
   summarize(value = mean(value, na.rm = T)) %>%
   left_join(scen, .) %>%
   rename(scenario = Scenario, region = Region)  %>%
-  filter(!(region %in% c("ROW", "EU")))
+  filter(year <= 2010, !(region %in% c("ROW", "EU", "MENA")))
 
 # Rebase simulations 2010 to historical data (2010=100)
 hist_prot_base <- filter(hist_prot, year == 2010) %>%
@@ -392,10 +447,15 @@ PROT_db <- FNS_db %>%
   filter(FNS == "PROT_LSP") %>%
   left_join(., hist_prot_base) %>%
   mutate(value = Base2010*index/100) %>%
-  filter(!(region %in% c("ROW", "EU")))
+  filter(!(region %in% c("ROW", "EU", "MENA")))
 
-# Draw plot
-Fig_PROT <- bwplot2_f(PROT_db, hist_prot, "gr/cap/day")
+# Draw plot for world
+Fig_PROT_w <- bwplot4_f(filter(PROT_db, region == "WLD"), 
+                        filter(hist_prot, region == "WLD"), "grams/cap/d", "Supply of protein of animal origin") 
+
+# Draw plot for regions
+Fig_PROT_r <- bwplot2_f(filter(PROT_db, region != "WLD"), 
+                        filter(hist_prot, region != "WLD"), "grams/cap/d") 
 
 
 ### CALO_CER 
@@ -408,7 +468,7 @@ hist_cal_cer <- FAO_FS_f("V_1.3", 2011) %>%
   summarize(value = mean(value, na.rm = T)) %>%
   left_join(scen, .) %>%
   rename(scenario = Scenario, region = Region) %>%
-  filter(!(region %in% c("ROW", "EU")))
+  filter(!(region %in% c("ROW", "EU", "MENA")))
 
 # Rebase simulations 2010 to historical data (2010=100)
 hist_cal_cer_base <- filter(hist_cal_cer, year == 2010) %>%
@@ -420,64 +480,107 @@ CALO_cer_db <- FNS_db %>%
   filter(FNS == "CALO_CER") %>%
   left_join(., hist_cal_cer_base) %>%
   mutate(value = Base2010*index/100) %>%
-  filter(!(region %in% c("ROW", "EU")))
+  filter(!(region %in% c("ROW", "EU", "MENA")))
 
-# Draw plot
-Fig_CALO_cer <- bwplot2_f(CALO_cer_db, hist_cal_cer, "Index (2010 = 100)")
+
+# Draw plot for world
+Fig_CALO_cer_w <- bwplot4_f(filter(CALO_cer_db, region == "WLD"), 
+                        filter(hist_cal_cer, region == "WLD"), "%", "Share of dietary energy supply derived from cereals") 
+
+# Draw plot for regions
+Fig_CALO_cer_r <- bwplot2_f(filter(CALO_cer_db, region != "WLD"), 
+                            filter(hist_cal_cer, region != "WLD"), "%") 
+
+ 
+### IMDR_CER
+# Load historical data
+hist_imdr <- FAO_FS_f("V_3.1", 2011) %>%
+  left_join(., FS2ISO_REG) %>%
+  mutate(Region = ifelse(iso3c == "WLD", "WLD", Region)) %>%
+  filter(!is.na(Region)) %>%
+  group_by(Region, year) %>%
+  summarize(value = mean(value, na.rm = T)) %>%
+  left_join(scen, .) %>%
+  rename(scenario = Scenario, region = Region) %>%
+  filter(!(region %in% c("ROW", "EU", "MENA")))
+
+# Rebase simulations 2010 to historical data (2010=100)
+hist_imdr_base <- filter(hist_imdr, year == 2010) %>%
+  dplyr::rename(Base2010 = value) %>%
+  select(-year)
+
+# Database
+IMDR_db <- FNS_db %>%
+  filter(FNS == "IMDR_CER") %>%
+  left_join(., hist_imdr_base) %>%
+  mutate(value = Base2010*index/100) %>%
+  filter(!(region %in% c("ROW", "EU", "MENA")))
+
+# Draw plot for world
+Fig_IMDR_w <- bwplot4_f(filter(IMDR_db, region == "WLD" ), 
+                            filter(hist_imdr, region == "WLD"), "%", "Dependency") 
+
+# Draw plot for regions
+Fig_IMDR_r <- bwplot2_f(filter(IMDR_db, region != "WLD"), 
+                            filter(hist_imdr, region != "WLD"), "%") 
+
+
+### CALO_VNF
+# Database
+CALO_vfn_db <- FNS_db %>%
+  filter(FNS == "CALO_VFN") %>%
+  select(-value) %>%
+  rename(value = index) %>%
+  filter(!(region %in% c("ROW", "EU", "MENA")))
+
+# Draw plot for world
+Fig_CALO_vfn_w <- bwplot3_f(filter(CALO_vfn_db, region == "WLD"), "%", "Share of calories from fruit & vegetables")
+
+
+# Draw plot for regions
+Fig_CALO_vfn_r <- bwplot_f(filter(CALO_vfn_db, region != "WLD"), "%")
+
+
+### COMBINE WORLD PLOTS
+# No legend
+Fig_wld_nl <- plot_grid(Fig_CALO_w + theme(legend.position="none"),
+                     Fig_CALO_cer_w + theme(legend.position="none"),
+                     Fig_PROT_w + theme(legend.position="none"),
+                     Fig_XFPI_w + theme(legend.position="none"),
+                     Fig_CALO_vfn_w + theme(legend.position="none"),
+                     ncol = 2,
+                     align = "vh")
+
+# With legend
+legend <- get_legend(Fig_CALO_w +
+                       theme(legend.position="bottom"))
+Fig_wld <- plot_grid(Fig_wld_nl, legend, ncol = 1, rel_heights = c(1, .1))
+
+
+
 
 # 
-# ### IMDR_CER 
-# # Load historical data
-# hist_imdr <- FAO_FS_f("V_3.1", 2011) %>%
-#   left_join(., FS2ISO_REG) %>%
-#   mutate(Region = ifelse(iso3c == "WLD", "WLD", Region)) %>%
-#   filter(!is.na(Region)) %>%
-#   group_by(Region, year) %>%
-#   summarize(value = mean(value, na.rm = T)) %>%
-#   left_join(scen, .) %>%
-#   rename(scenario = Scenario, region = Region) %>%
-#   filter(region == "SSA")
-#   filter(!(region %in% c("ROW", "EU")))
 # 
-# # Rebase simulations 2010 to historical data (2010=100)
-# hist_imdr_base <- filter(hist_imdr, year == 2010) %>%
-#   dplyr::rename(Base2010 = value) %>%
-#   select(-year) 
+# ### COMPARE MODEL RESULTS
+# # Prepare data
+# comp_db <- filter(FNS_db, model != "Average") %>%
+#   spread(model, index)
 # 
-# # Database
-# IMDR_db <- FNS_db %>% 
-#   filter(FNS == "IMDR_CER") %>%
-#   left_join(., hist_imdr_base) %>%
-#   mutate(value = Base2010*index/100) %>%
-#   filter(region == "SSA")
-#   filter(!(region %in% c("ROW", "EU")))
+# Fig_comp_model <- ggplot() + 
+#   geom_point(data = comp_db, aes(x = MAGNET, y = GLOBIOM, colour = scenario)) +
+#   coord_fixed(ratio = 1) +
+#   facet_wrap(~FNS, scale = "free") +
+#   geom_abline(intercept = 0, slope =1) +
+#   theme(strip.background = element_blank(),
+#         strip.text.x = element_text(face = "bold")) +
+#   #theme(aspect.ratio=1) +
+#   labs(colour = "Variable") +
+#   #coord_cartesian(ylim=c(100, 150),xlim=c(100, 150)) +
+#   coord_cartesian() +
+#   #scale_y_continuous(labels = comma, breaks=seq(0, 15, 2.5)) +
+#   #scale_x_continuous(labels = comma, breaks=seq(0, 15, 2.5)) +
+#   theme(legend.position="bottom",
+#         legend.box="horizontal") +
+#   guides(colour = guide_legend(title.position="top", title.hjust = 0.5, nrow=1))
 # 
-# xtabs(~region + year, data = IMDR_db)
-# # Draw plot
-# IMDR_db_wld <- filter(IMDR_db, region == "WLD")
-# bwplot2_f(IMDR_db, hist_imdr, "Index (2010 = 100)")
 # 
-
-### COMPARE MODEL RESULTS
-# Prepare data
-comp_db <- filter(FNS_db, model != "Average") %>%
-  spread(model, index)
-
-Fig_comp_model <- ggplot() + 
-  geom_point(data = comp_db, aes(x = MAGNET, y = GLOBIOM, colour = scenario)) +
-  coord_fixed(ratio = 1) +
-  facet_wrap(~FNS, scale = "free") +
-  geom_abline(intercept = 0, slope =1) +
-  theme(strip.background = element_blank(),
-        strip.text.x = element_text(face = "bold")) +
-  #theme(aspect.ratio=1) +
-  labs(colour = "Variable") +
-  #coord_cartesian(ylim=c(100, 150),xlim=c(100, 150)) +
-  coord_cartesian() +
-  #scale_y_continuous(labels = comma, breaks=seq(0, 15, 2.5)) +
-  #scale_x_continuous(labels = comma, breaks=seq(0, 15, 2.5)) +
-  theme(legend.position="bottom",
-        legend.box="horizontal") +
-  guides(colour = guide_legend(title.position="top", title.hjust = 0.5, nrow=1))
-
-
