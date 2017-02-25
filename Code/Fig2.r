@@ -398,9 +398,22 @@ CALO_db <- CALO_db %>%
   mutate(value = Base2010*index/100) %>%
   filter(!(region %in% c("ROW", "EU", "MENA")))
 
-# Draw plot for world
+# Draw plot for separate regions
 Fig_CALO_w <- bwplot4_f(filter(CALO_db, region == "WLD"), 
                         filter(hist_cal, region == "WLD"), "kcal/cap/d", "Calorie availabilty") 
+
+Fig_CALO_SSA <- bwplot4_f(filter(CALO_db, region == "SSA"), 
+                        filter(hist_cal, region == "SSA"), "kcal/cap/d", "Calorie availabilty") 
+
+Fig_CALO_EASIA <- bwplot4_f(filter(CALO_db, region == "EASIA"), 
+                          filter(hist_cal, region == "EASIA"), "kcal/cap/d", "Calorie availabilty") 
+
+
+Fig_CALO_SASIA <- bwplot4_f(filter(CALO_db, region == "SASIA"), 
+                            filter(hist_cal, region == "SASIA"), "kcal/cap/d", "Calorie availabilty") 
+
+Fig_CALO_LAC <- bwplot4_f(filter(CALO_db, region == "LAC"), 
+                            filter(hist_cal, region == "LAC"), "kcal/cap/d", "Calorie availabilty") 
 
 # Draw plot for regions
 Fig_CALO_r <- bwplot2_f(filter(CALO_db, region != "WLD"), 
@@ -421,9 +434,17 @@ XFPI_db <- FNS_db %>%
   select(-value) %>%
   dplyr::rename(value = index)
 
-# Draw plot for world
-XFPI_wld <- filter(XFPI_db, region == "WLD") 
-Fig_XFPI_w <- bwplot4_f(XFPI_wld, hist_price_wld, "Index (2010 = 100)", "Food prices")
+# Draw plot for separate regions
+Fig_XFPI_w <- bwplot4_f(filter(XFPI_db, region == "WLD") , hist_price_wld, "Index (2010 = 100)", "Food prices")
+
+Fig_XFPI_SSA <- bwplot3_f(filter(XFPI_db, region == "SSA"), "Index (2010 = 100)", "Food prices")
+
+Fig_XFPI_EASIA <- bwplot3_f(filter(XFPI_db, region == "EASIA"), "Index (2010 = 100)", "Food prices")
+
+Fig_XFPI_SASIA <- bwplot3_f(filter(XFPI_db, region == "SASIA"), "Index (2010 = 100)", "Food prices")
+
+Fig_XFPI_LAC <- bwplot3_f(filter(XFPI_db, region == "LAC"), "Index (2010 = 100)", "Food prices")
+
 
 ### PROT
 # Load historical data
@@ -449,9 +470,21 @@ PROT_db <- FNS_db %>%
   mutate(value = Base2010*index/100) %>%
   filter(!(region %in% c("ROW", "EU", "MENA")))
 
-# Draw plot for world
+# Draw plot for separate regions
 Fig_PROT_w <- bwplot4_f(filter(PROT_db, region == "WLD"), 
                         filter(hist_prot, region == "WLD"), "grams/cap/d", "Supply of protein of animal origin") 
+
+Fig_PROT_SSA <- bwplot4_f(filter(PROT_db, region == "SSA"), 
+                        filter(hist_prot, region == "SSA"), "grams/cap/d", "Supply of protein of animal origin") 
+
+Fig_PROT_EASIA <- bwplot4_f(filter(PROT_db, region == "EASIA"), 
+                        filter(hist_prot, region == "EASIA"), "grams/cap/d", "Supply of protein of animal origin") 
+
+Fig_PROT_SASIA <- bwplot4_f(filter(PROT_db, region == "SASIA"), 
+                            filter(hist_prot, region == "SASIA"), "grams/cap/d", "Supply of protein of animal origin") 
+
+Fig_PROT_LAC <- bwplot4_f(filter(PROT_db, region == "LAC"), 
+                            filter(hist_prot, region == "LAC"), "grams/cap/d", "Supply of protein of animal origin") 
 
 # Draw plot for regions
 Fig_PROT_r <- bwplot2_f(filter(PROT_db, region != "WLD"), 
@@ -483,9 +516,22 @@ CALO_cer_db <- FNS_db %>%
   filter(!(region %in% c("ROW", "EU", "MENA")))
 
 
-# Draw plot for world
+# Draw plot for separate regions
 Fig_CALO_cer_w <- bwplot4_f(filter(CALO_cer_db, region == "WLD"), 
                         filter(hist_cal_cer, region == "WLD"), "%", "Share of dietary energy supply derived from cereals") 
+
+Fig_CALO_cer_SSA <- bwplot4_f(filter(CALO_cer_db, region == "SSA"), 
+                            filter(hist_cal_cer, region == "SSA"), "%", "Share of dietary energy supply derived from cereals") 
+
+
+Fig_CALO_cer_EASIA <- bwplot4_f(filter(CALO_cer_db, region == "EASIA"), 
+                            filter(hist_cal_cer, region == "EASIA"), "%", "Share of dietary energy supply derived from cereals") 
+
+Fig_CALO_cer_SASIA <- bwplot4_f(filter(CALO_cer_db, region == "SASIA"), 
+                            filter(hist_cal_cer, region == "SASIA"), "%", "Share of dietary energy supply derived from cereals") 
+
+Fig_CALO_cer_LAC <- bwplot4_f(filter(CALO_cer_db, region == "LAC"), 
+                            filter(hist_cal_cer, region == "LAC"), "%", "Share of dietary energy supply derived from cereals") 
 
 # Draw plot for regions
 Fig_CALO_cer_r <- bwplot2_f(filter(CALO_cer_db, region != "WLD"), 
@@ -533,23 +579,82 @@ CALO_vfn_db <- FNS_db %>%
   rename(value = index) %>%
   filter(!(region %in% c("ROW", "EU", "MENA")))
 
-# Draw plot for world
-Fig_CALO_vfn_w <- bwplot3_f(filter(CALO_vfn_db, region == "WLD"), "%", "Share of calories from fruit & vegetables")
+# Draw plot for separate regions
+Fig_CALO_vfn_w <- bwplot3_f(filter(CALO_vfn_db, region == "WLD"), "Index (2010 = 100)", "Share of calories from fruit & vegetables")
 
+Fig_CALO_vfn_SSA <- bwplot3_f(filter(CALO_vfn_db, region == "SSA"), "Index (2010 = 100)", "Share of calories from fruit & vegetables")
+
+Fig_CALO_vfn_EASIA <- bwplot3_f(filter(CALO_vfn_db, region == "EASIA"), "Index (2010 = 100)", "Share of calories from fruit & vegetables")
+
+Fig_CALO_vfn_SASIA <- bwplot3_f(filter(CALO_vfn_db, region == "SASIA"), "Index (2010 = 100)", "Share of calories from fruit & vegetables")
+
+Fig_CALO_vfn_LAC <- bwplot3_f(filter(CALO_vfn_db, region == "LAC"), "Index (2010 = 100)", "Share of calories from fruit & vegetables")
 
 # Draw plot for regions
-Fig_CALO_vfn_r <- bwplot_f(filter(CALO_vfn_db, region != "WLD"), "%")
+Fig_CALO_vfn_r <- bwplot_f(filter(CALO_vfn_db, region != "WLD"), "Index (2010 = 100)")
+
+
+### GDPC
+# Load historical data
+hist_pop <- FAO_FS_f("A_1", 2016) %>%
+  rename(pop = value)
+hist_GDPC <- FAO_FS_f("V_2.4", 2016) %>%
+  left_join(.,hist_pop) %>%
+  na.omit() %>%
+  left_join(., FS2ISO_REG) %>%
+  mutate(Region = ifelse(iso3c == "WLD", "WLD", Region)) %>%
+  filter(!is.na(Region)) %>%
+  group_by(Region, year) %>%
+  summarize(value = sum(value*pop, na.rm = T)/sum(pop, na.rm = T)) %>%
+  left_join(scen, .) %>%
+  rename(scenario = Scenario, region = Region) %>%
+  filter(!(region %in% c("ROW", "EU", "MENA")), year <= 2010)
+
+# Rebase simulations 2010 to historical data (2010=100)
+hist_GDPC_base <- filter(hist_GDPC, year == 2010) %>%
+  dplyr::rename(Base2010 = value) %>%
+  select(-year)
+
+# Database
+GDPC_db <- FNS_db %>%
+  filter(FNS == "GDPC_TOT") %>%
+  left_join(., hist_GDPC_base) %>%
+  mutate(value = Base2010*index/100) %>%
+  filter(!(region %in% c("ROW", "EU", "MENA")))
+
+# Draw plot for separate regions
+Fig_GDPC_w <- bwplot6_f(filter(GDPC_db, region == "WLD"), 
+                        filter(hist_GDPC, region == "WLD"), "constant 2011 PPP USD", "GDP per capita") 
+
+Fig_GDPC_SSA <- bwplot6_f(filter(GDPC_db, region == "SSA"), 
+                        filter(hist_GDPC, region == "SSA"), "constant 2011 PPP USD", "GDP per capita") 
+
+Fig_GDPC_EASIA <- bwplot6_f(filter(GDPC_db, region == "EASIA"), 
+                        filter(hist_GDPC, region == "EASIA"), "constant 2011 PPP USD", "GDP per capita") 
+
+Fig_GDPC_SASIA <- bwplot6_f(filter(GDPC_db, region == "SASIA"), 
+                        filter(hist_GDPC, region == "SASIA"), "constant 2011 PPP USD", "GDP per capita") 
+
+Fig_GDPC_LAC <- bwplot6_f(filter(GDPC_db, region == "LAC"), 
+                        filter(hist_GDPC, region == "LAC"), "constant 2011 PPP USD", "GDP per capita") 
+
+# Draw plot for regions
+Fig_GDPC_r <- bwplot5_f(filter(GDPC_db, region != "WLD"), 
+                        filter(hist_GDPC, region != "WLD"), "constant 2011 PPP USD") 
+
+
 
 
 ### COMBINE WORLD PLOTS
 # No legend
 Fig_wld_nl <- plot_grid(Fig_CALO_w + theme(legend.position="none"),
-                     Fig_CALO_cer_w + theme(legend.position="none"),
-                     Fig_PROT_w + theme(legend.position="none"),
-                     Fig_XFPI_w + theme(legend.position="none"),
-                     Fig_CALO_vfn_w + theme(legend.position="none"),
-                     ncol = 2,
-                     align = "vh")
+                        Fig_CALO_cer_w + theme(legend.position="none"),
+                        Fig_PROT_w + theme(legend.position="none"),
+                        Fig_XFPI_w + theme(legend.position="none"),
+                        Fig_CALO_vfn_w + theme(legend.position="none"),
+                        Fig_GDPC_w + theme(legend.position="none"),
+                        ncol = 2,
+                        align = "vh")
 
 # With legend
 legend <- get_legend(Fig_CALO_w +
@@ -557,6 +662,68 @@ legend <- get_legend(Fig_CALO_w +
 Fig_wld <- plot_grid(Fig_wld_nl, legend, ncol = 1, rel_heights = c(1, .1))
 
 
+### COMBINE SSA PLOTS
+Fig_SSA_nl <- plot_grid(Fig_CALO_SSA + theme(legend.position="none"),
+                        Fig_CALO_cer_SSA + theme(legend.position="none"),
+                        Fig_PROT_SSA + theme(legend.position="none"),
+                        Fig_XFPI_SSA + theme(legend.position="none"),
+                        Fig_CALO_vfn_SSA + theme(legend.position="none"),
+                        Fig_GDPC_SSA + theme(legend.position="none"),
+                        ncol = 2,
+                        align = "vh")
+
+# With legend
+legend <- get_legend(Fig_CALO_SSA +
+                       theme(legend.position="bottom"))
+Fig_SSA <- plot_grid(Fig_SSA_nl, legend, ncol = 1, rel_heights = c(1, .1))
+
+
+### COMBINE EASIA PLOTS
+Fig_EASIA_nl <- plot_grid(Fig_CALO_EASIA + theme(legend.position="none"),
+                        Fig_CALO_cer_EASIA + theme(legend.position="none"),
+                        Fig_PROT_EASIA + theme(legend.position="none"),
+                        Fig_XFPI_EASIA + theme(legend.position="none"),
+                        Fig_CALO_vfn_EASIA + theme(legend.position="none"),
+                        Fig_GDPC_EASIA + theme(legend.position="none"),
+                        ncol = 2,
+                        align = "vh")
+
+# With legend
+legend <- get_legend(Fig_CALO_EASIA +
+                       theme(legend.position="bottom"))
+Fig_EASIA <- plot_grid(Fig_EASIA_nl, legend, ncol = 1, rel_heights = c(1, .1))
+
+
+### COMBINE SASIA PLOTS
+Fig_SASIA_nl <- plot_grid(Fig_CALO_SASIA + theme(legend.position="none"),
+                          Fig_CALO_cer_SASIA + theme(legend.position="none"),
+                          Fig_PROT_SASIA + theme(legend.position="none"),
+                          Fig_XFPI_SASIA + theme(legend.position="none"),
+                          Fig_CALO_vfn_SASIA + theme(legend.position="none"),
+                          Fig_GDPC_SASIA + theme(legend.position="none"),
+                          ncol = 2,
+                          align = "vh")
+
+# With legend
+legend <- get_legend(Fig_CALO_SASIA +
+                       theme(legend.position="bottom"))
+Fig_SASIA <- plot_grid(Fig_SASIA_nl, legend, ncol = 1, rel_heights = c(1, .1))
+
+
+### COMBINE LAC PLOTS
+Fig_LAC_nl <- plot_grid(Fig_CALO_LAC + theme(legend.position="none"),
+                          Fig_CALO_cer_LAC + theme(legend.position="none"),
+                          Fig_PROT_LAC + theme(legend.position="none"),
+                          Fig_XFPI_LAC + theme(legend.position="none"),
+                          Fig_CALO_vfn_LAC + theme(legend.position="none"),
+                          Fig_GDPC_LAC + theme(legend.position="none"),
+                          ncol = 2,
+                          align = "vh")
+
+# With legend
+legend <- get_legend(Fig_CALO_LAC +
+                       theme(legend.position="bottom"))
+Fig_LAC <- plot_grid(Fig_LAC_nl, legend, ncol = 1, rel_heights = c(1, .1))
 
 
 # 
