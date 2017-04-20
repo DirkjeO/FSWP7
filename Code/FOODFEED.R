@@ -1,3 +1,4 @@
+
 ###############################
 ##### FOOD AND FEED ###########
 ###############################
@@ -223,7 +224,7 @@ FOOD <- bind_rows(FOOD1, FOOD2, FOOD3, FOOD4, FOOD5) %>%
         summarize(value = sum(value, na.rm=T)) %>%
         rename(TRAD_COMM = i) %>%
         mutate(variable = "FOOD",
-               unit = "M USD 2007")
+               unit = "mn USD")
 
 # FEED
 # P1
@@ -315,13 +316,13 @@ FEEDsec <- bind_rows(FEED1, FEED2, FEED3, FEED4, FEED5) %>%
   summarize(value = sum(value)) %>%
   rename(TRAD_COMM = i) %>%
   mutate(variable = "FEEDsec",
-         unit = "M USD")
+         unit = "mn USD")
 
 FEED <- FEEDsec %>%
   group_by(scenario, year, REG, TRAD_COMM) %>%
   summarize(value = sum(value)) %>%
   mutate(variable = "FEED",
-         unit = "M USD 2007")
+         unit = "mn USD")
 
 # OTHU
 # CONS = FOOD + FEED + OTHU
@@ -344,7 +345,7 @@ OTHU <- left_join(CONSou, FEEDou) %>%
                value = CONS-FOOD-FEED) %>%
         select(-CONS, -FOOD, -FEED) %>%
         mutate(variable = "OTHU",
-         unit = "M USD 2007")
+         unit = "mn USD")
 
 
 # Clean up
@@ -353,4 +354,4 @@ rm(A, C, CONS, EXPO, F1, F2, F2biog, F2cvol, IMPO, PROD, VDFM, VFM, VIFM, X)
 rm(lvs, pa, pf, ser, ac)
 rm(FOOD1, FOOD2, FOOD3, FOOD4, FOOD5)
 rm(FEED1, FEED2, FEED3, FEED4, FEED5)
-   
+ 
